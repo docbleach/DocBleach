@@ -1,0 +1,20 @@
+language: java
+jdk: oraclejdk8
+
+sudo: false
+
+cache:
+  directories:
+  - $HOME/.m2
+
+script: mvn package
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: qlyOP0Lg06ThcbsEgXW3qaZzS7eMmsZ4XRUVDsYXbnbZFDem46I7fPboZcAAp0g6AX79Kf/NpESfNShGgzoUZlbFkPp5ez/emi48jENv1H7HwDGS6b/rEcUo7V0ktrY3SfCeQhlwOqicMkCqDG8HT1zjK6odlvjSmSFgUcNG2fWsSmQUJkPZW2jzJaO3Ko37sgX/GIo/HgjL7N9Y7P/+/9PPdBV+rGcjLJAgLZgEQVS3OCd2XHPn6AWa0J7ieFn7JzYQXNT6iOfMVnrRsjsMuTLQKbclFgJb8SZfzJdrOaLY259JumSmGe5Y7SsuN2bRRmFt3H6yF46qptjlPz7ozJCuE4DozVowCjoY+U5ecvx6oMg5WFsFbAipaMWIe6LlZCajqN6RGgPeYwZlfIBbHmj3KGwXOrd3HCslL+D4ZDv/+9QfRriESgaJSSwI/IkT2thHDY+D7FTyRCmKY6S3jcxNGaFz4WRJeFTKMMq1vI0+wI41mRbOg7n5kaNdbCO4vXpBNC/Zhnv0DOD8Zhy/LyGnm9hlfJ10+SF6bxmdKdln9i49AdyaHzVDZCR1/X1lM6mfk1lryzj0jsYVNmYN7JhcsLiUGSY0zSrtSCMQmvajjuPPMFqWXFTj/Kz6aCCIlbsZQAHTntnQr21VMaWqa8JUJ3E6vJYZf1ZtKIy0mpk=
+  file: target/docbleach.jar
+  on:
+    repo: docbleach/DocBleach
+    tags: true
