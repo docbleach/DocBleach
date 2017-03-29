@@ -95,7 +95,8 @@ BUILD SUCCESS confirms that all the tests were run successfuly.
  * Contribute: https://github.com/docbleach/DocBleach
  * Report bugs: https://github.com/docbleach/DocBleach/issues
  * Get latest version: https://github.com/docbleach/DocBleach/releases
- 
+ * Wiki: https://github.com/docbleach/DocBleach/wiki
+
 # License
  
 See [LICENSE](https://github.com/docbleach/DocBleach/blob/master/LICENSE).
@@ -115,7 +116,6 @@ Some things would be awesome, though:
 
 
 
-[faq]: https://github.com/docbleach/DocBleach/wiki/FAQ
 [release-page]: https://github.com/ovh/docbleach/releases
 [webI]: https://github.com/docbleach/DocBleach-Web
 [travis_img]: https://api.travis-ci.org/docbleach/DocBleach.svg?branch=master
