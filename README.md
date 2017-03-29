@@ -117,6 +117,6 @@ Some things would be awesome, though:
 
 [faq]: https://github.com/docbleach/DocBleach/wiki/FAQ
 [release-page]: https://github.com/ovh/docbleach/releases
-[webI]: https://github.com/docbleach/docbleach-rest
+[webI]: https://github.com/docbleach/DocBleach-Web
 [travis_img]: https://api.travis-ci.org/docbleach/DocBleach.svg?branch=master
 [travis_link]: https://travis-ci.org/docbleach/DocBleach
