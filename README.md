@@ -103,9 +103,15 @@ See [LICENSE](https://github.com/docbleach/DocBleach/blob/master/LICENSE).
 
 # Project Status
 
-We think this project is as complete as we want to be. Don't expect the code base
-to change everyday, but feel free to contribute: new ideas are more than welcome, 
-and threats evolve - so should we.
+Don't expect the code base to change everyday, but feel free to contribute: new ideas are more than
+welcome,  and threats evolve - so should we.
+
+Some things would be awesome, though:
+- Having a nice logo
+- Refactoring the code base, maybe separate it into layers
+- Improving the output, so that humans and robots can use it. 
+- Writing more content to show explain how the sanitation process works, why it works.
+- Adding more stats!
 
 
 
