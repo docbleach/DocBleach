@@ -68,8 +68,8 @@ public class PdfBleach implements IBleach {
 
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException {
+        try (ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING)) {
             InputStream closeShieldInputStream = new CloseShieldInputStream(inputStream);
-            ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING);
             RandomAccessRead source = new RandomAccessBufferedFileInputStream(closeShieldInputStream);
 
             sanitize(scratchFile, source, outputStream, session);
