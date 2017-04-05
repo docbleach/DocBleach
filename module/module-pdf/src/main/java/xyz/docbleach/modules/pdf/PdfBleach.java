@@ -87,9 +87,6 @@ public class PdfBleach implements IBleach {
 
         doc.protect(new StandardProtectionPolicy(password, password, doc.getCurrentAccessPermission()));
 
-        //noinspection UnusedAssignment - Forget about the password
-        password = null;
-
         PDDocumentCatalog docCatalog = doc.getDocumentCatalog();
 
         sanitizeOpenAction(session, docCatalog);
