@@ -41,14 +41,10 @@ public class RTFBleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outFile, IBleachSession session)
-            throws BleachException {
+    public void sanitize(InputStream inputStream, OutputStream outFile, IBleachSession session) throws BleachException {
         LOGGER.debug("This is a RTF file, I'll rename object to 0bject, and hope for it to be enough.");
 
-        Charset cs = Charset.defaultCharset();
-        if (Charset.isSupported("UTF-8")) {
-            cs = Charset.forName("UTF-8");
-        }
+        Charset cs = Charset.isSupported("UTF-8") ? Charset.forName("UTF-8") : Charset.defaultCharset();
 
         try (
                 BufferedReader inStream = new BufferedReader(new InputStreamReader(inputStream, cs));

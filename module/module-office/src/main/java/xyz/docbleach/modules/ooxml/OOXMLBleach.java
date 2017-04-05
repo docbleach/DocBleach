@@ -23,7 +23,6 @@ import java.util.Iterator;
  * filter at this level: if the mime type is a macro, or an ActiveX object, we remove it.
  */
 public class OOXMLBleach implements IBleach {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(OOXMLBleach.class);
     private static final String SUSPICIOUS_OOXML_FORMAT = "Found and removed suspicious content type: '{}' in '{}' (Size: {})";
     private static final String EXTERNAL_RELATION_FORMAT = "Found an external relationship from '{}' to '{}' (type '{}')";
@@ -41,8 +40,7 @@ public class OOXMLBleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session)
-            throws BleachException {
+    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException {
         try (OPCPackage pkg = OPCPackage.open(inputStream)) {
             LOGGER.trace("File opened");
             Iterator<PackagePart> it = getPartsIterator(pkg);
@@ -76,14 +74,12 @@ public class OOXMLBleach implements IBleach {
         }
     }
 
-    private void sanitize(IBleachSession session, RelationshipSource pkg,
-                          Iterable<PackageRelationship> relationships) {
+    private void sanitize(IBleachSession session, RelationshipSource pkg, Iterable<PackageRelationship> relationships) {
         relationships.iterator()
                 .forEachRemaining(packageRelationship -> sanitize(session, pkg, packageRelationship));
     }
 
-    private void sanitize(IBleachSession session, RelationshipSource pkg,
-                          PackageRelationship relationship) {
+    private void sanitize(IBleachSession session, RelationshipSource pkg, PackageRelationship relationship) {
         if (HYPERLINK_RELATION.equals(relationship.getRelationshipType())) {
             // Allow links
             return;
@@ -109,8 +105,7 @@ public class OOXMLBleach implements IBleach {
         }
     }
 
-    void sanitize(IBleachSession session, OPCPackage pkg, PackagePart part)
-            throws InvalidFormatException {
+    void sanitize(IBleachSession session, OPCPackage pkg, PackagePart part) throws InvalidFormatException {
         LOGGER.trace("Part name: {}", part.getPartName());
 
         String contentType = part.getContentType();

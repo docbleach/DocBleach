@@ -40,8 +40,7 @@ public class OLE2Bleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session)
-            throws BleachException {
+    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException {
         try (
                 NPOIFSFileSystem fsIn = new NPOIFSFileSystem(inputStream);
                 NPOIFSFileSystem fs = new NPOIFSFileSystem()
@@ -109,8 +108,7 @@ public class OLE2Bleach implements IBleach {
         }
     }
 
-    private void sanitizeSummaryInformation(IBleachSession session,
-                                            org.apache.poi.hpsf.SummaryInformation dsi) {
+    private void sanitizeSummaryInformation(IBleachSession session, SummaryInformation dsi) {
         String template = dsi.getTemplate();
 
         if (template != null) {

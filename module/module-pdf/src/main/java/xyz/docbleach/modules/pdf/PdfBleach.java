@@ -50,8 +50,7 @@ public class PdfBleach implements IBleach {
     private static final String[] COMMON_PASSWORDS = new String[]{
             null, "", "test", "example", "sample", "malware", "infected", "password"
     };
-    private static final MemoryUsageSetting MEMORY_USAGE_SETTING = MemoryUsageSetting
-            .setupMixed(1024);
+    private static final MemoryUsageSetting MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMixed(1024);
 
     @Override
     public boolean handlesMagic(InputStream stream) throws IOException {
@@ -68,9 +67,7 @@ public class PdfBleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session)
-            throws BleachException {
-        try {
+    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException {
             InputStream closeShieldInputStream = new CloseShieldInputStream(inputStream);
             ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING);
             RandomAccessRead source = new RandomAccessBufferedFileInputStream(closeShieldInputStream);
@@ -81,8 +78,7 @@ public class PdfBleach implements IBleach {
         }
     }
 
-    private void sanitize(ScratchFile scratchFile, RandomAccessRead source, OutputStream outputStream,
-                          IBleachSession session) throws IOException, BleachException {
+    private void sanitize(ScratchFile scratchFile, RandomAccessRead source, OutputStream outputStream, IBleachSession session) throws IOException, BleachException {
         String password = getPasswordFor(scratchFile, source, session);
 
         PDFParser parser = new PDFParser(source, password, scratchFile);
@@ -109,8 +105,7 @@ public class PdfBleach implements IBleach {
         source.rewind((int) source.getPosition());
     }
 
-    private String getPasswordFor(ScratchFile scratchFile, RandomAccessRead source,
-                                  IBleachSession session) throws IOException, BleachException {
+    private String getPasswordFor(ScratchFile scratchFile, RandomAccessRead source, IBleachSession session) throws IOException, BleachException {
         for (String pwd : COMMON_PASSWORDS) {
             if (testPassword(scratchFile, source, pwd)) {
                 LOGGER.debug("Password was guessed: '{}'", pwd);
@@ -126,8 +121,7 @@ public class PdfBleach implements IBleach {
     }
 
     @SuppressFBWarnings(value = "EXS_EXCEPTION_SOFTENING_RETURN_FALSE", justification = "This method is an helper to check the password")
-    private boolean testPassword(ScratchFile inFile, RandomAccessRead source, String password)
-            throws IOException {
+    private boolean testPassword(ScratchFile inFile, RandomAccessRead source, String password) throws IOException {
         PDFParser parser = new PDFParser(source, password, inFile);
         try {
             parser.parse();
@@ -178,6 +172,7 @@ public class PdfBleach implements IBleach {
             pageActions.setC(null);
             recordJavascriptThreat(session);
         }
+
         if (pageActions.getO() != null) {
             LOGGER.debug("Found&removed action when page is opened, was ({})", pageActions.getO());
             pageActions.setO(null);
@@ -256,8 +251,7 @@ public class PdfBleach implements IBleach {
         }
     }
 
-    public void sanitizeDocumentActions(IBleachSession session,
-                                        PDDocumentCatalogAdditionalActions documentActions) {
+    public void sanitizeDocumentActions(IBleachSession session, PDDocumentCatalogAdditionalActions documentActions) {
         LOGGER.trace("Checking additional actions...");
         if (documentActions.getDP() != null) {
             LOGGER.debug("Found&removed action after printing (was {})", documentActions.getDP());
@@ -286,29 +280,24 @@ public class PdfBleach implements IBleach {
         }
     }
 
-    public void sanitizeFieldAdditionalActions(IBleachSession session,
-                                               PDFormFieldAdditionalActions fieldActions) {
+    public void sanitizeFieldAdditionalActions(IBleachSession session, PDFormFieldAdditionalActions fieldActions) {
         if (fieldActions.getC() != null) {
-            LOGGER.debug(
-                    "Found&removed an action to be performed in order to recalculate the value of this field when that of another field changes.");
+            LOGGER.debug("Found&removed an action to be performed in order to recalculate the value of this field when that of another field changes.");
             fieldActions.setC(null);
             recordJavascriptThreat(session);
         }
         if (fieldActions.getF() != null) {
-            LOGGER.debug(
-                    "Found&removed an action to be performed before the field is formatted to display its current value.");
+            LOGGER.debug("Found&removed an action to be performed before the field is formatted to display its current value.");
             fieldActions.setF(null);
             recordJavascriptThreat(session);
         }
         if (fieldActions.getK() != null) {
-            LOGGER.debug(
-                    "Found&removed an action to be performed when the user types a keystroke into a text field or combo box or modifies the selection in a scrollable list box.");
+            LOGGER.debug("Found&removed an action to be performed when the user types a keystroke into a text field or combo box or modifies the selection in a scrollable list box.");
             fieldActions.setK(null);
             recordJavascriptThreat(session);
         }
         if (fieldActions.getV() != null) {
-            LOGGER.debug(
-                    "Found&removed an action to be action to be performed when the field's value is changed.");
+            LOGGER.debug("Found&removed an action to be action to be performed when the field's value is changed.");
             fieldActions.setV(null);
             recordJavascriptThreat(session);
         }
@@ -330,90 +319,67 @@ public class PdfBleach implements IBleach {
         recordJavascriptThreat(session);
     }
 
-    public void sanitizeWidgetAnnotation(IBleachSession session,
-                                         PDAnnotationWidget annotationWidget) {
+    public void sanitizeWidgetAnnotation(IBleachSession session, PDAnnotationWidget annotationWidget) {
         if (annotationWidget.getAction() != null) {
-            LOGGER
-                    .debug("Found&Removed action on annotation widget, was {}", annotationWidget.getAction());
+            LOGGER.debug("Found&Removed action on annotation widget, was {}", annotationWidget.getAction());
             annotationWidget.setAction(null);
             recordJavascriptThreat(session);
         }
         sanitizeAnnotationActions(session, annotationWidget.getActions());
     }
 
-    public void sanitizeAnnotationActions(IBleachSession session,
-                                          PDAnnotationAdditionalActions annotationAdditionalActions) {
+    public void sanitizeAnnotationActions(IBleachSession session, PDAnnotationAdditionalActions annotationAdditionalActions) {
         if (annotationAdditionalActions == null) {
             return;
         }
 
         if (annotationAdditionalActions.getBl() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the annotation loses the input focus, was {}",
-                    annotationAdditionalActions.getBl());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the annotation loses the input focus, was {}", annotationAdditionalActions.getBl());
             annotationAdditionalActions.setBl(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getD() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the mouse button is pressed inside the annotation's active area, was {}",
-                    annotationAdditionalActions.getD());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the mouse button is pressed inside the annotation's active area, was {}", annotationAdditionalActions.getD());
             annotationAdditionalActions.setD(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getE() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the cursor enters the annotation's active area, was {}",
-                    annotationAdditionalActions.getE());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the cursor enters the annotation's active area, was {}", annotationAdditionalActions.getE());
             annotationAdditionalActions.setE(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getFo() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the annotation receives the input focus, was {}",
-                    annotationAdditionalActions.getFo());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the annotation receives the input focus, was {}", annotationAdditionalActions.getFo());
             annotationAdditionalActions.setFo(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getPC() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the page containing the annotation is closed, was {}",
-                    annotationAdditionalActions.getPC());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the page containing the annotation is closed, was {}", annotationAdditionalActions.getPC());
             annotationAdditionalActions.setPC(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getPI() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the page containing the annotation is no longer visible in the viewer application's user interface, was {}",
-                    annotationAdditionalActions.getPI());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the page containing the annotation is no longer visible in the viewer application's user interface, was {}", annotationAdditionalActions.getPI());
             annotationAdditionalActions.setPI(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getPO() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the page containing the annotation is opened, was {}",
-                    annotationAdditionalActions.getPO());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the page containing the annotation is opened, was {}", annotationAdditionalActions.getPO());
             annotationAdditionalActions.setPO(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getPV() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the page containing the annotation becomes visible in the viewer application's user interface, was {}",
-                    annotationAdditionalActions.getPV());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the page containing the annotation becomes visible in the viewer application's user interface, was {}", annotationAdditionalActions.getPV());
             annotationAdditionalActions.setPV(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getU() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the mouse button is released inside the annotation's active area, was {}",
-                    annotationAdditionalActions.getU());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the mouse button is released inside the annotation's active area, was {}", annotationAdditionalActions.getU());
             annotationAdditionalActions.setU(null);
             recordJavascriptThreat(session);
         }
         if (annotationAdditionalActions.getX() != null) {
-            LOGGER.debug(
-                    "Found&Removed action on annotation widget to be performed when the cursor exits the annotation's active area, was {}",
-                    annotationAdditionalActions.getX());
+            LOGGER.debug("Found&Removed action on annotation widget to be performed when the cursor exits the annotation's active area, was {}", annotationAdditionalActions.getX());
             annotationAdditionalActions.setX(null);
             recordJavascriptThreat(session);
         }

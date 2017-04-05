@@ -28,6 +28,5 @@ public interface IBleach {
      * @param session      the bleach session that stores threats
      * @throws BleachException Any fatal error that might occur during the bleach
      */
-    void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session)
-            throws BleachException;
+    void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException;
 }
