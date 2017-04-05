@@ -123,6 +123,7 @@ public class PdfBleach implements IBleach {
         try {
             parser.parse();
         } catch (InvalidPasswordException e) {
+            LOGGER.error("An exception occured while testing a password.", e);
             return false;
         } finally {
             rewind(source);
