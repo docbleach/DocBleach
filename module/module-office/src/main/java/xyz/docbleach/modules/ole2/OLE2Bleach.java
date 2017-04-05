@@ -76,7 +76,7 @@ public class OLE2Bleach implements IBleach {
         try {
             EntryUtils.copyNodeRecursively(entry, destination);
         } catch (IOException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("An error occured while trying to recursively copy nodes", e);
         }
     }
 
@@ -104,7 +104,7 @@ public class OLE2Bleach implements IBleach {
             SummaryInformation dsi = new SummaryInformation(ps);
             sanitizeSummaryInformation(session, dsi);
         } catch (NoPropertySetStreamException | UnexpectedPropertySetTypeException | MarkUnsupportedException | IOException e) {
-            LOGGER.error(e.getMessage());
+            LOGGER.error("An error occured while trying to sanitize the document entry", e);
         }
     }
 
