@@ -52,6 +52,9 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
+                <configuration>
+                    <finalName>${project.name}-uber</finalName>
+                </configuration>
             </plugin>
         </plugins>
     </build>

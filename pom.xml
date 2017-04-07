@@ -11,6 +11,14 @@
     <description>Parent project for all DocBleach modules.</description>
     <inceptionYear>2017</inceptionYear>
 
+    <developers>
+        <developer>
+            <id>punkeel</id>
+            <email>punkeel@me.com</email>
+            <name>PunKeel</name>
+        </developer>
+    </developers>
+
     <licenses>
         <license>
             <name>MIT License</name>
@@ -19,13 +27,12 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <id>punkeel</id>
-            <email>punkeel@me.com</email>
-            <name>PunKeel</name>
-        </developer>
-    </developers>
+    <properties>
+        <jdk.version>1.8</jdk.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <failOnMissingWebXml>false</failOnMissingWebXml>
+    </properties>
 
     <modules>
         <module>api</module>
@@ -39,13 +46,17 @@
         <url>https://github.com/docbleach/DocBleach/issues</url>
     </issueManagement>
 
-    <properties>
-        <jdk.version>1.8</jdk.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <failOnMissingWebXml>false</failOnMissingWebXml>
-    </properties>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
 
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -156,7 +167,8 @@
                     </executions>
                     <configuration>
                         <transformers>
-                            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                         </transformers>
                         <filters>
                             <filter>
