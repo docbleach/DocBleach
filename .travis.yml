@@ -5,6 +5,7 @@ sudo: false
 install: true
 
 addons:
+  srcclr: true
   sonarqube:
     organization: "docbleach"
     token:
