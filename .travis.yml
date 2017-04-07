@@ -5,8 +5,6 @@ sudo: false
 install: true
 
 addons:
-  srcclr:
-    debug: true
   sonarqube:
     organization: "docbleach"
     token:
@@ -17,7 +15,8 @@ cache:
   - '$HOME/.m2'
   - '$HOME/.sonar/cache'
 
-script: mvn org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar
+# wow, u long line!
+script: mvn org.jacoco:jacoco-maven-plugin:prepare-agent package sonar:sonar com.srcclr:srcclr-maven-plugin:scan
 
 deploy:
   provider: releases
