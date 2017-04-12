@@ -1,11 +1,11 @@
-[DocBleach][release-page]
+# DocBleach
 
 DocBleach is an advanced Content Disarm and Reconstruction software.
 Its objective is to remove misbehaving dynamic content from your Office
 files, or everything that could be a threat to the safety of your computer.
- 
+
 [![Build Status][travis_img]][travis_link]
- 
+
 Let's assume your job involves working with files from external sources, for
 instance reading resumes from unknown applicants. You receive for example a .doc
 file, your anti-virus doesn't detect it as harmful, and you decide to open it
@@ -45,19 +45,19 @@ sent to stdout.
 DocBleach's information (removed threats, errors, ...) are sent to stderr.
 
 
- 
+
 ## Get the sources
- 
+
 ```bash
     git clone https://github.com/docbleach/DocBleach.git
     cd DocBleach
     mvn install
     # Import it as a Maven project in your favorite IDE
 ```
- 
+
 You've developed a new cool feature ? Fixed an annoying bug ? We'd be happy
 to hear from you !
- 
+
 ## Run the tests
 The tests run with JUnit 5, which is perfectly integrated in Maven.
 To run tests, just run `mvn test`. You should get something similar to this:
@@ -89,17 +89,17 @@ Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
 
 BUILD SUCCESS confirms that all the tests were run successfuly.
 
- 
-# Related links
- 
- * Contribute: https://github.com/docbleach/DocBleach
- * Report bugs: https://github.com/docbleach/DocBleach/issues
- * Get latest version: https://github.com/docbleach/DocBleach/releases
- * Wiki: https://github.com/docbleach/DocBleach/wiki
 
-# License
- 
-See [LICENSE](https://github.com/docbleach/DocBleach/blob/master/LICENSE).
+# Related links
+
+ * [:wrench: How to Contribute](contribute)
+ * [:beetle: Reporting bugs](issues)
+ * [:gem: Download latest version](release-page)
+ * [:mag_right: Wiki](wiki)
+
+## License
+
+See [LICENSE](license).
 
 
 # Project Status
@@ -110,7 +110,7 @@ welcome,  and threats evolve - so should we.
 Some things would be awesome, though:
 - Having a nice logo
 - Refactoring the code base, maybe separate it into layers
-- Improving the output, so that humans and robots can use it. 
+- Improving the output, so that humans and robots can use it.
 - Writing more content to show explain how the sanitation process works, why it works.
 - Adding more stats!
 
@@ -120,3 +120,7 @@ Some things would be awesome, though:
 [webI]: https://github.com/docbleach/DocBleach-Web
 [travis_img]: https://api.travis-ci.org/docbleach/DocBleach.svg?branch=master
 [travis_link]: https://travis-ci.org/docbleach/DocBleach
+[issues]: https://github.com/docbleach/DocBleach/issues
+[contribute]: https://github.com/docbleach/DocBleach/blob/master/CONTRIBUTING.md
+[license]: https://github.com/docbleach/DocBleach/blob/master/LICENSE
+[wiki]: https://github.com/docbleach/DocBleach/wiki
