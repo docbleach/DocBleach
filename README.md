@@ -92,14 +92,14 @@ BUILD SUCCESS confirms that all the tests were run successfuly.
 
 # Related links
 
- * [:wrench: How to Contribute](contribute)
- * [:beetle: Reporting bugs](issues)
- * [:gem: Download latest version](release-page)
- * [:mag_right: Wiki](wiki)
+ * [:wrench: How to Contribute][contribute]
+ * [:beetle: Reporting bugs][issues]
+ * [:gem: Download latest version][release-page]
+ * [:mag_right: Wiki][wiki]
 
 ## License
 
-See [LICENSE](license).
+See [LICENSE][license].
 
 
 # Project Status
@@ -116,7 +116,7 @@ Some things would be awesome, though:
 
 
 
-[release-page]: https://github.com/ovh/docbleach/releases
+[release-page]: https://github.com/docbleach/docbleach/releases
 [webI]: https://github.com/docbleach/DocBleach-Web
 [travis_img]: https://api.travis-ci.org/docbleach/DocBleach.svg?branch=master
 [travis_link]: https://travis-ci.org/docbleach/DocBleach
