@@ -11,7 +11,6 @@ import xyz.docbleach.api.bleach.DefaultBleach;
 
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -26,20 +25,21 @@ public class Main {
         // Prevent instantiation from the outside worlds
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws IOException, ParseException {
         // Set the security manager, preventing commands/network interactions.
         System.setSecurityManager(new UnsafeSecurityManager());
 
         Main main = new Main();
 
-        try {
-            main.parseArguments(args);
+        main.parseArguments(args);
 
+        try {
             main.sanitize();
-            System.exit(0);
-        } catch (IOException | BleachException e) {
+        } catch (BleachException e) {
             exitError(e);
         }
+
+        System.exit(0);
     }
 
     private static void exitError(Exception e) {
@@ -58,8 +58,7 @@ public class Main {
     /**
      * Sanitizes the designated files
      */
-    private void sanitize() throws IOException, BleachException {
-
+    private void sanitize() throws BleachException {
         BleachSession session = new BleachSession();
         new DefaultBleach().sanitize(inputStream, outputStream, session);
 
@@ -123,7 +122,7 @@ public class Main {
     /**
      * Parse the command line arguments, and store them in variables
      */
-    private void parseArguments(String[] args) throws ParseException, BleachException, IOException, URISyntaxException {
+    private void parseArguments(String[] args) throws ParseException, IOException {
         Options options = new Options();
         options.addOption(Option.builder("in")
                 .desc("The file to be processed")
@@ -169,7 +168,7 @@ public class Main {
      * for stdin, or an URI.
      */
     @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "Wanted user input")
-    private void makeInputStream(String inName) throws BleachException, IOException {
+    private void makeInputStream(String inName) throws IOException {
         LOGGER.debug("Checking input name : {}", inName);
         if ("-".equalsIgnoreCase(inName)) {
             inputStream = new BufferedInputStream(System.in);
@@ -184,7 +183,7 @@ public class Main {
      * Checks the output file is valid: either a file path or "-" for stdout.
      */
     @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "Wanted user input")
-    private void makeOutputStream(String outName) throws BleachException, IOException {
+    private void makeOutputStream(String outName) throws IOException {
         LOGGER.debug("Checking output name : {}", outName);
         if ("-".equalsIgnoreCase(outName)) {
             outputStream = System.out;
@@ -193,10 +192,10 @@ public class Main {
 
         File outFile = new File(outName);
         if (outFile.exists()) {
-            throw new BleachException("Output file already exists. Quitting");
+            throw new IOException("Output file already exists. Quitting");
         }
         if (!outFile.createNewFile()) {
-            throw new BleachException("Output file could not be written to. Quitting.");
+            throw new IOException("Output file could not be written to. Quitting.");
         }
 
         outputStream = new FileOutputStream(outFile);
