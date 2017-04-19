@@ -10,17 +10,14 @@ import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.IBleach;
 
 import java.io.*;
-import java.net.*;
-import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ServiceLoader;
 
 @SuppressFBWarnings(value = "DM_EXIT", justification = "Used as an app, an exit code is expected")
 public class Main {
-    private static final String FILE_SCHEME = "file";
-    private static final String HTTP_SCHEME = "http";
-    private static final String HTTPS_SCHEME = "https";
-    private static final String FTP_SCHEME = "ftp";
     private static Logger LOGGER = null;
     private boolean batchMode;
     private int verbosityLevel = 0;
@@ -81,7 +78,7 @@ public class Main {
     private ClassLoader getPluginClassLoader() {
         ClassLoader ownClassLoader = getClass().getClassLoader();
 
-        File loc = new File("plugins");
+        File loc = new File("./plugins");
         if (!loc.exists()) {
             System.err.println("plugins directory does not exist");
             return ownClassLoader;
@@ -101,12 +98,6 @@ public class Main {
         }
 
         return new URLClassLoader(urls, ownClassLoader);
-    }
-
-    private InputStream getDownloadChannel(String uri) throws IOException {
-        URL website = new URL(uri);
-        ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-        return new BufferedInputStream(Channels.newInputStream(rbc));
     }
 
     private void setupLogging() {
@@ -162,7 +153,8 @@ public class Main {
             // Logger is not yet setup here, we have to handle it the hard way
             System.err.println(e.getMessage());
             System.err.println();
-            new HelpFormatter().printHelp("docbleach", "DocBleach", options, "", true);
+            PrintWriter err = new PrintWriter(System.err);
+            new HelpFormatter().printHelp(err, 100, "docbleach", "DocBleach", options, 0, 0, "", true);
             System.exit(1);
             return;
         }
@@ -193,23 +185,8 @@ public class Main {
             return;
         }
 
-        URI inFileUri = new URI(inName); // Using {@link File#toURI} forces the file:// prefix
-
-        if (inFileUri.getScheme() == null || FILE_SCHEME.equals(inFileUri.getScheme())) {
-            File inFile = new File(inName);
-            inputStream = getFileInputStream(inFile);
-            return;
-        }
-
-        switch (inFileUri.getScheme()) {
-            case HTTP_SCHEME:
-            case HTTPS_SCHEME:
-            case FTP_SCHEME:
-                inputStream = getDownloadChannel(inName);
-                break;
-            default:
-                throw new BleachException("Unknown scheme: " + inFileUri.getScheme());
-        }
+        File inFile = new File(inName);
+        inputStream = getFileInputStream(inFile);
     }
 
     /**
