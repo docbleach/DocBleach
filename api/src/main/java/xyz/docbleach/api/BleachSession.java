@@ -17,7 +17,6 @@ public class BleachSession implements IBleachSession {
 
     private InputStream inputStream;
     private OutputStream outputStream;
-    private boolean batchMode;
     private int threats = 0;
     private IBleach bleach = null;
 
@@ -25,10 +24,9 @@ public class BleachSession implements IBleachSession {
     private BleachSession() {
     }
 
-    public BleachSession(InputStream inputStream, OutputStream outputStream, boolean batchMode) {
+    public BleachSession(InputStream inputStream, OutputStream outputStream) {
         this.inputStream = inputStream;
         this.outputStream = outputStream;
-        this.batchMode = batchMode;
     }
 
     public void findBleach() throws IOException, BleachException {
@@ -55,10 +53,6 @@ public class BleachSession implements IBleachSession {
 
     public void recordThreat(String name, SEVERITY severityLevel) {
         threats += 1;
-    }
-
-    public boolean isBatchMode() {
-        return batchMode;
     }
 
     public int threatCount() {

@@ -19,7 +19,6 @@ import java.util.ServiceLoader;
 @SuppressFBWarnings(value = "DM_EXIT", justification = "Used as an app, an exit code is expected")
 public class Main {
     private static Logger LOGGER = null;
-    private boolean batchMode;
     private int verbosityLevel = 0;
     private InputStream inputStream;
     private OutputStream outputStream;
@@ -58,7 +57,7 @@ public class Main {
      * Sanitizes the designated files
      */
     private void sanitize() throws IOException, BleachException {
-        BleachSession session = new BleachSession(inputStream, outputStream, batchMode);
+        BleachSession session = new BleachSession(inputStream, outputStream);
 
         ClassLoader pluginClassLoader = getPluginClassLoader();
 
@@ -140,8 +139,6 @@ public class Main {
                 .argName("FILE")
                 .required()
                 .build());
-        options.addOption("batch", false,
-                "enable batch mode, removing all interactions (password prompt, ...)");
         options.addOption("v", false, "enable verbose mode");
         options.addOption("vv", false, "enable debug mode");
 
@@ -158,7 +155,7 @@ public class Main {
             System.exit(1);
             return;
         }
-        setBatchMode(cmd.hasOption("batch"));
+
         verbosityLevel = cmd.hasOption("vv") ? 2 : (cmd.hasOption("v") ? 1 : 0);
         setupLogging();
 
@@ -178,10 +175,6 @@ public class Main {
         LOGGER.debug("Checking input name : {}", inName);
         if ("-".equalsIgnoreCase(inName)) {
             inputStream = new BufferedInputStream(System.in);
-            if (batchMode) {
-                LOGGER.error("Batch mode is not available when reading from stdin");
-            }
-            batchMode = false;
             return;
         }
 
@@ -209,10 +202,6 @@ public class Main {
         }
 
         outputStream = new FileOutputStream(outFile);
-    }
-
-    private void setBatchMode(boolean batchMode) {
-        this.batchMode = batchMode;
     }
 
     private InputStream getFileInputStream(File inFile) throws BleachException, FileNotFoundException {

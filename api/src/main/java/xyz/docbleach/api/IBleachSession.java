@@ -7,16 +7,6 @@ package xyz.docbleach.api;
  */
 @Deprecated // Bad practice?
 public interface IBleachSession {
-
-    /**
-     * When running in batch mode, no interaction is expected between the bleach and the user. This
-     * way, if the bleach needs an information it is either able to prompt the user (interactive), or
-     * guess the best action to do (failure is an acceptable behavior).
-     *
-     * @return false if a prompt ({@link System#console()}) is available
-     */
-    boolean isBatchMode();
-
     /**
      * The BleachSession is able to record threats encountered by the bleach.
      *

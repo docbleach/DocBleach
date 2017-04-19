@@ -110,9 +110,7 @@ public class PdfBleach implements IBleach {
             }
         }
 
-        if (!session.isBatchMode()) {
-            return new String(System.console().readPassword("Password: "));
-        }
+        // @TODO: fetch password from config?
 
         throw new BleachException("PDF is protected with an unknown password");
     }
