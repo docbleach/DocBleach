@@ -30,36 +30,46 @@ public class OOXMLBleach implements IBleach {
 
     private static final String[] WHITELISTED_RELATIONS = new String[]{
             // Hyperlinks should be safe enough, right?
-            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
+            Relations.HYPERLINK
     };
 
     private static final String[] BLACKLISTED_RELATIONS = new String[]{
             // Macro
-            "http://schemas.microsoft.com/office/2006/relationships/vbaProject",
+            Relations.VBA_PROJECT,
+            Relations.VBA_PROJECT_SIGNATURE,
+            Relations.WORD_VBA_DATA,
 
             // OLE Objects
-            "http://schemas.microsoft.com/office/2006/relationships/oleObject",
-            "http://schemas.microsoft.com/office/2006/relationships/e2Object",
-            "http://schemas.microsoft.com/office/2006/relationships/e1Object",
+            Relations.OPENXML_OLE_OBJECT,
+            Relations.OLE_OBJECT,
+            Relations.E1_OBJECT,
+            Relations.E2_OBJECT,
 
             // ActiveX Controls
-            "http://schemas.microsoft.com/office/2006/relationships/activeXControl"
+            Relations.OPENXML_CONTROL,
+            Relations.OPENXML_ACTIVEX_CONTROL,
+            Relations.OPENXML_ACTIVEX_CONTROL_BIN,
+            Relations.ACTIVEX_CONTROL,
+            Relations.ACTIVEX_CONTROL_BIN
     };
 
     private static final String[] BLACKLISTED_CONTENT_TYPES = new String[]{
             // Macro related content types
-            "application/vnd.ms-word.vbaData+xml",
-            "application/vnd.ms-office.vbaProject",
-            "application/vnd.ms-office.vbaProjectSignature",
+            ContentTypes.VBA_DATA,
+            ContentTypes.VBA_PROJECT,
+            ContentTypes.VBA_PROJECT_SIGNATURE,
 
             // Blacklisting Postscript to prevent 0days
-            "application/postscript",
+            ContentTypes.POSTSCRIPT,
 
             // OLE Objects
-            "application/vnd.openxmlformats-officedocument.oleObject",
+            ContentTypes.OLE_OBJECT,
+            ContentTypes.PACKAGE,
 
             // ActiveX objects
-            "application/vnd.ms-office.activeX"
+            ContentTypes.ACTIVEX,
+            ContentTypes.OPENXML_ACTIVEX,
+            ContentTypes.OPENXML_ACTIVEX_XML,
     };
 
     @Override
@@ -86,6 +96,7 @@ public class OOXMLBleach implements IBleach {
             while (it.hasNext()) {
                 part = it.next();
                 sanitize(session, pkg, part);
+
                 if (!part.isRelationshipPart()) {
                     sanitize(session, part, part.getRelationships());
                 }
