@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="http://de13.engine.flamingtext.com/netfu/tmp28005/coollogo_com-13464558.png"/>
+  <img src="logo.png"/>
 </p>
 
 
