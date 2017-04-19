@@ -176,8 +176,25 @@ public class OOXMLBleach implements IBleach {
         ContentType type = part.getContentTypeDetails();
         if (isForbiddenType(type) || isStrangeContentType(type)) {
             LOGGER.debug(SUSPICIOUS_OOXML_FORMAT, contentType, part.getPartName(), part.getSize());
-            pkg.deletePart(part.getPartName());
+            deletePart(pkg, part.getPartName());
             session.recordThreat("Dynamic content", SEVERITY.HIGH);
+        }
+    }
+
+    /**
+     * Delete the part with the specified name and its associated relationships part if one exists.
+     * <p>
+     * Unlike {@link OPCPackage#deletePart(PackagePartName)}, this checks if the relationship exists
+     * before trying to remove it, instead of throwing an exception.
+     *
+     * @param partName Name of the part to delete
+     */
+    private void deletePart(OPCPackage pkg, PackagePartName partName) {
+        pkg.removePart(partName);
+
+        PackagePartName relationshipPartName = PackagingURIHelper.getRelationshipPartName(partName);
+        if (relationshipPartName != null && pkg.containPart(relationshipPartName)) {
+            pkg.removePart(relationshipPartName);
         }
     }
 
