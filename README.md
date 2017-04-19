@@ -44,7 +44,7 @@ sent to stdout.
 
 DocBleach's information (removed threats, errors, ...) are sent to stderr.
 
-
+[Advanced usage][wiki-adv-usage]
 
 ## Get the sources
 
@@ -124,3 +124,4 @@ Some things would be awesome, though:
 [contribute]: https://github.com/docbleach/DocBleach/blob/master/CONTRIBUTING.md
 [license]: https://github.com/docbleach/DocBleach/blob/master/LICENSE
 [wiki]: https://github.com/docbleach/DocBleach/wiki
+[wiki-adv-usage]: https://github.com/docbleach/DocBleach/wiki/Advanced-usage
