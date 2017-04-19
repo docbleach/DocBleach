@@ -208,7 +208,7 @@ public class Main {
             throw new BleachException("Output file could not be written to. Quitting.");
         }
 
-        outputStream = new BufferedOutputStream(new FileOutputStream(outFile));
+        outputStream = new FileOutputStream(outFile);
     }
 
     private void setBatchMode(boolean batchMode) {
