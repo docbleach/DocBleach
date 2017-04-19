@@ -1,5 +1,6 @@
 package xyz.docbleach.cli;
 
+import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.cli.*;
 import org.slf4j.Logger;
@@ -20,6 +21,7 @@ public class Main {
     private int verbosityLevel = 0;
     private InputStream inputStream;
     private OutputStream outputStream;
+    private boolean jsonOutput;
 
     private Main() {
         // Prevent instantiation from the outside worlds
@@ -62,9 +64,15 @@ public class Main {
         BleachSession session = new BleachSession();
         new DefaultBleach().sanitize(inputStream, outputStream, session);
 
-        if (session.threatCount() == 0) {
-            LOGGER.info("The file was already safe, so I've just copied it over.");
+        if (jsonOutput) {
+            Gson gson = new Gson();
+            System.err.println(gson.toJson(session));
         } else {
+            if (session.threatCount() == 0) {
+                LOGGER.info("The file was already safe, so I've just copied it over.");
+            } else {
+                LOGGER.warn("Sanitized file has been saved, {} potential threat(s) removed.", session.threatCount());
+            }
         }
     }
 
@@ -102,6 +110,9 @@ public class Main {
 
         String level;
         switch (verbosityLevel) {
+            case -1:
+                level = "OFF";
+                break;
             case 1:
                 level = "DEBUG";
                 break;
@@ -138,6 +149,7 @@ public class Main {
                 .build());
         options.addOption("v", false, "enable verbose mode");
         options.addOption("vv", false, "enable debug mode");
+        options.addOption("json", false, "enable json output mode");
 
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd;
@@ -154,6 +166,13 @@ public class Main {
         }
 
         verbosityLevel = cmd.hasOption("vv") ? 2 : (cmd.hasOption("v") ? 1 : 0);
+
+        jsonOutput = cmd.hasOption("json");
+        if (cmd.hasOption("json")) {
+            // If we output JSON, disable logging
+            verbosityLevel = -1;
+        }
+
         setupLogging();
 
         String inName = cmd.getOptionValue("in");
