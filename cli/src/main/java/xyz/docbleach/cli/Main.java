@@ -36,6 +36,7 @@ public class Main {
 
         try {
             main.parseArguments(args);
+
             main.sanitize();
             System.exit(0);
         } catch (IOException | BleachException e) {
@@ -73,8 +74,7 @@ public class Main {
         if (session.threatCount() == 0) {
             LOGGER.info("The file was already safe, so I've just copied it over.");
         } else {
-            LOGGER.warn("Sanitized file has been saved, {} potential threat(s) removed.",
-                    session.threatCount());
+            LOGGER.warn("Sanitized file has been saved, {} potential threat(s) removed.", session.threatCount());
         }
     }
 
@@ -135,8 +135,7 @@ public class Main {
     /**
      * Parse the command line arguments, and store them in variables
      */
-    private void parseArguments(String[] args)
-            throws ParseException, BleachException, IOException, URISyntaxException {
+    private void parseArguments(String[] args) throws ParseException, BleachException, IOException, URISyntaxException {
         Options options = new Options();
         options.addOption(Option.builder("in")
                 .desc("The file to be processed")
@@ -172,9 +171,10 @@ public class Main {
         setupLogging();
 
         String inName = cmd.getOptionValue("in");
+        makeInputStream(inName);
+
         String outName = cmd.getOptionValue("out");
         makeOutputStream(outName);
-        makeInputStream(inName);
     }
 
     /**
@@ -182,8 +182,7 @@ public class Main {
      * for stdin, or an URI.
      */
     @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "Wanted user input")
-    private void makeInputStream(String inName)
-            throws BleachException, IOException, URISyntaxException {
+    private void makeInputStream(String inName) throws BleachException, IOException {
         LOGGER.debug("Checking input name : {}", inName);
         if ("-".equalsIgnoreCase(inName)) {
             inputStream = new BufferedInputStream(System.in);
@@ -239,8 +238,7 @@ public class Main {
         this.batchMode = batchMode;
     }
 
-    private InputStream getFileInputStream(File inFile)
-            throws BleachException, FileNotFoundException {
+    private InputStream getFileInputStream(File inFile) throws BleachException, FileNotFoundException {
         if (!inFile.exists()) {
             throw new BleachException("Input file does not exist. Quitting.");
         }
@@ -252,6 +250,7 @@ public class Main {
         if (!inFile.isFile()) {
             throw new BleachException("I can't read the Input File. Quitting.");
         }
+
         return new BufferedInputStream(new FileInputStream(inFile));
     }
 }
