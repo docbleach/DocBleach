@@ -79,7 +79,7 @@ public class Main {
 
         File loc = new File("./plugins");
         if (!loc.exists()) {
-            System.err.println("plugins directory does not exist");
+            LOGGER.debug("./plugins/ directory does not exist");
             return ownClassLoader;
         }
 
