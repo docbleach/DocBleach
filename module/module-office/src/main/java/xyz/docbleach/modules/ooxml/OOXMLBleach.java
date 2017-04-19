@@ -27,7 +27,40 @@ public class OOXMLBleach implements IBleach {
     private static final String SUSPICIOUS_OOXML_FORMAT = "Found and removed suspicious content type: '{}' in '{}' (Size: {})";
     private static final String EXTERNAL_RELATION_FORMAT = "Found an external relationship from '{}' to '{}' (type '{}')";
     private static final String OOXWORD_SCHEME = "ooxWord";
-    private static final String HYPERLINK_RELATION = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink";
+
+    private static final String[] WHITELISTED_RELATIONS = new String[]{
+            // Hyperlinks should be safe enough, right?
+            "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink"
+    };
+
+    private static final String[] BLACKLISTED_RELATIONS = new String[]{
+            // Macro
+            "http://schemas.microsoft.com/office/2006/relationships/vbaProject",
+
+            // OLE Objects
+            "http://schemas.microsoft.com/office/2006/relationships/oleObject",
+            "http://schemas.microsoft.com/office/2006/relationships/e2Object",
+            "http://schemas.microsoft.com/office/2006/relationships/e1Object",
+
+            // ActiveX Controls
+            "http://schemas.microsoft.com/office/2006/relationships/activeXControl"
+    };
+
+    private static final String[] BLACKLISTED_CONTENT_TYPES = new String[]{
+            // Macro related content types
+            "application/vnd.ms-word.vbaData+xml",
+            "application/vnd.ms-office.vbaProject",
+            "application/vnd.ms-office.vbaProjectSignature",
+
+            // Blacklisting Postscript to prevent 0days
+            "application/postscript",
+
+            // OLE Objects
+            "application/vnd.openxmlformats-officedocument.oleObject",
+
+            // ActiveX objects
+            "application/vnd.ms-office.activeX"
+    };
 
     @Override
     public boolean handlesMagic(InputStream stream) throws IOException {
@@ -56,6 +89,7 @@ public class OOXMLBleach implements IBleach {
                 if (!part.isRelationshipPart()) {
                     sanitize(session, part, part.getRelationships());
                 }
+                // TODO: remap content types for macroEnabled documents
             }
             pkg.save(outputStream);
 
@@ -75,13 +109,20 @@ public class OOXMLBleach implements IBleach {
     }
 
     private void sanitize(IBleachSession session, RelationshipSource pkg, Iterable<PackageRelationship> relationships) {
-        relationships.iterator()
-                .forEachRemaining(packageRelationship -> sanitize(session, pkg, packageRelationship));
+        relationships.iterator().forEachRemaining(packageRelationship -> sanitize(session, pkg, packageRelationship));
     }
 
     private void sanitize(IBleachSession session, RelationshipSource pkg, PackageRelationship relationship) {
-        if (HYPERLINK_RELATION.equals(relationship.getRelationshipType())) {
-            // Allow links
+        String relationshipType = relationship.getRelationshipType();
+        LOGGER.debug("Relation type '{}' found from '{}' to '{}'", relationshipType, relationship.getSource(), relationship.getTargetURI());
+
+        if (isWhitelistedRelationType(relationshipType)) {
+            return;
+        }
+
+        if (isBlacklistedRelationType(relationshipType)) {
+            pkg.removeRelationship(relationship.getId());
+            session.recordThreat("Blacklisted relationship type", SEVERITY.HIGH);
             return;
         }
 
@@ -105,6 +146,24 @@ public class OOXMLBleach implements IBleach {
         }
     }
 
+    private boolean isBlacklistedRelationType(String relationshipType) {
+        for (String rel : BLACKLISTED_RELATIONS) {
+            if (rel.equalsIgnoreCase(relationshipType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isWhitelistedRelationType(String relationshipType) {
+        for (String rel : WHITELISTED_RELATIONS) {
+            if (rel.equalsIgnoreCase(relationshipType)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     void sanitize(IBleachSession session, OPCPackage pkg, PackagePart part) throws InvalidFormatException {
         LOGGER.trace("Part name: {}", part.getPartName());
 
@@ -114,47 +173,37 @@ public class OOXMLBleach implements IBleach {
         // Sample content types:
         // vnd.ms-word.vbaData+xml, vnd.ms-office.vbaProject
         // cf https://msdn.microsoft.com/fr-fr/library/aa338205(v=office.12).aspx
-        if (isForbiddenType(part.getContentTypeDetails())) {
+        ContentType type = part.getContentTypeDetails();
+        if (isForbiddenType(type) || isStrangeContentType(type)) {
             LOGGER.debug(SUSPICIOUS_OOXML_FORMAT, contentType, part.getPartName(), part.getSize());
             pkg.deletePart(part.getPartName());
             session.recordThreat("Dynamic content", SEVERITY.HIGH);
         }
     }
 
-    boolean isForbiddenType(ContentType contentTypeDetails) {
+    boolean isForbiddenType(ContentType type) {
+        String full_type = type.toString(false);
+
+        for (String _type : BLACKLISTED_CONTENT_TYPES) {
+            if (_type.equalsIgnoreCase(full_type))
+                return true;
+        }
+
+        return false;
+    }
+
+    boolean isStrangeContentType(ContentType contentTypeDetails) {
         String contentType = contentTypeDetails.getType();
-        String contentSubType = contentTypeDetails.getSubType().toLowerCase();
+
         switch (contentType) {
             case "application":
             case "image":
             case "audio":
             case "video":
-                break;
+                return false;
             default:
                 LOGGER.error("Unknown content type: {}", contentType);
                 return true;
         }
-
-        if ("application".equals(contentType) && "postscript".equals(contentSubType)) {
-            return true;
-        }
-
-        if (contentSubType.contains("vba")) {
-            return true;
-        }
-
-        if (contentSubType.contains("macro")) {
-            return true;
-        }
-
-        if (contentSubType.contains("activex")) {
-            return true;
-        }
-
-        if (contentSubType.contains("oleobject")) {
-            return true;
-        }
-
-        return false;
     }
 }
