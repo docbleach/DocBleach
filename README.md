@@ -1,4 +1,7 @@
-# DocBleach
+<p align="center">
+  <img src="http://de13.engine.flamingtext.com/netfu/tmp28005/coollogo_com-13464558.png"/>
+</p>
+
 
 DocBleach is an advanced Content Disarm and Reconstruction software.
 Its objective is to remove misbehaving dynamic content from your Office
