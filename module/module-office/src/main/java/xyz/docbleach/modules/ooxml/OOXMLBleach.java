@@ -14,7 +14,9 @@ import xyz.docbleach.api.IBleachSession.SEVERITY;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Sanitizes Office 2007+ documents (OOXML), in place. This format has two interesting things for
@@ -72,6 +74,23 @@ public class OOXMLBleach implements IBleach {
             ContentTypes.OPENXML_ACTIVEX_XML,
     };
 
+    private static final Map<String, String> REMAPPED_CONTENT_TYPES = new HashMap<>();
+
+    static {
+        // Word
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_DOCM, ContentTypes.MAIN_DOCX);
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_DOTM, ContentTypes.MAIN_DOTX);
+
+        // Excel
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_XLTM, ContentTypes.MAIN_XLTX);
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_XLSM, ContentTypes.MAIN_XLSX);
+
+        // PowerPoint
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_PPSM, ContentTypes.MAIN_PPSX);
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_PPTM, ContentTypes.MAIN_PPTX);
+        REMAPPED_CONTENT_TYPES.put(ContentTypes.MAIN_POTM, ContentTypes.MAIN_POTX);
+    }
+
     @Override
     public boolean handlesMagic(InputStream stream) throws IOException {
         return DocumentFactoryHelper.hasOOXMLHeader(stream);
@@ -100,7 +119,11 @@ public class OOXMLBleach implements IBleach {
                 if (!part.isRelationshipPart()) {
                     sanitize(session, part, part.getRelationships());
                 }
-                // TODO: remap content types for macroEnabled documents
+
+                if (part.isDeleted())
+                    continue;
+
+                remapContentType(session, part);
             }
             pkg.save(outputStream);
 
@@ -109,6 +132,17 @@ public class OOXMLBleach implements IBleach {
         } catch (InvalidFormatException | IOException e) {
             throw new BleachException(e);
         }
+    }
+
+    void remapContentType(IBleachSession session, PackagePart part) throws InvalidFormatException {
+        String oldContentType = part.getContentType();
+        if (!REMAPPED_CONTENT_TYPES.containsKey(oldContentType)) {
+            return;
+        }
+
+        String newContentType = REMAPPED_CONTENT_TYPES.get(part.getContentType());
+        part.setContentType(newContentType);
+        LOGGER.debug("Content type of '{}' changed from '{}' to '{}'", part.getPartName(), oldContentType, newContentType);
     }
 
     private Iterator<PackagePart> getPartsIterator(OPCPackage pkg) throws BleachException {
