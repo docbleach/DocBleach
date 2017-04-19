@@ -28,6 +28,9 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        // Set the security manager, preventing commands/network interactions.
+        System.setSecurityManager(new UnsafeSecurityManager());
+
         Main main = new Main();
 
         try {
