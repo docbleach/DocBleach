@@ -1,65 +1,34 @@
 package xyz.docbleach.api;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import xyz.docbleach.api.threats.Threat;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.Collection;
 
-@Deprecated // Bad practice?
-public class BleachSession implements IBleachSession {
-    private static final Logger LOGGER = LoggerFactory.getLogger(BleachSession.class);
-    private static final Set<IBleach> bleaches = new HashSet<>();
-    private static final String ERROR_CALL_FINDBLEACH = "No bleach was defined, call findBleach before sanitize";
+/**
+ * A Bleach Session handles the data a bleach needs to store: list of the threats removed, for instance
+ * May be used in the future to store configuration (file's password, for instance) or callbacks
+ */
+public class BleachSession {
+    private final Collection<Threat> threats = new ArrayList<>();
 
-    private InputStream inputStream;
-    private OutputStream outputStream;
-    private int threats = 0;
-    private IBleach bleach = null;
+    /**
+     * The BleachSession is able to record threats encountered by the bleach.
+     *
+     * @param threat The removed threat object, containing the threat type and more information
+     */
 
-    @SuppressWarnings("unused") // prevent initialisation without parameters
-    private BleachSession() {
-    }
-
-    public BleachSession(InputStream inputStream, OutputStream outputStream) {
-        this.inputStream = inputStream;
-        this.outputStream = outputStream;
-    }
-
-    public void findBleach() throws IOException, BleachException {
-        for (IBleach tmpBleach : bleaches) {
-            if (tmpBleach == null || !tmpBleach.handlesMagic(inputStream)) {
-                continue;
-            }
-
-            bleach = tmpBleach;
-            LOGGER.debug("Found bleach for this file type: {}", bleach.getName());
-
+    public void recordThreat(Threat threat) {
+        if (threat == null)
             return;
-        }
-        throw new BleachException("Could not find a sanitizer for your file! :(");
+        threats.add(threat);
     }
 
-    public void sanitize() throws IOException, BleachException {
-        if (bleach == null) {
-            throw new BleachException(ERROR_CALL_FINDBLEACH);
-        }
-
-        bleach.sanitize(inputStream, outputStream, this);
-    }
-
-    public void recordThreat(String name, SEVERITY severityLevel) {
-        threats += 1;
-    }
-
-    public int threatCount() {
+    public Collection<Threat> getThreats() {
         return threats;
     }
 
-    public void registerBleach(IBleach bleach) {
-        bleaches.add(bleach);
+    public int threatCount() {
+        return threats.size();
     }
 }

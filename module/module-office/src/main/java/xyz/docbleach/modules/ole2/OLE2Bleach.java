@@ -5,13 +5,17 @@ import org.apache.poi.poifs.filesystem.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachException;
-import xyz.docbleach.api.IBleach;
-import xyz.docbleach.api.IBleachSession;
-import xyz.docbleach.api.IBleachSession.SEVERITY;
+import xyz.docbleach.api.BleachSession;
+import xyz.docbleach.api.bleach.Bleach;
+import xyz.docbleach.api.threats.Threat;
+import xyz.docbleach.api.threats.ThreatAction;
+import xyz.docbleach.api.threats.ThreatSeverity;
+import xyz.docbleach.api.threats.ThreatType;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 import java.util.function.Predicate;
 
 
@@ -21,17 +25,20 @@ import java.util.function.Predicate;
  * just not copied over. This way, using a simple Visitor, it is possible to add rules applied on
  * each entry.
  */
-public class OLE2Bleach implements IBleach {
-
+public class OLE2Bleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(OLE2Bleach.class);
     private static final String MACRO_ENTRY = "Macros";
     private static final String VBA_ENTRY = "VBA";
     private static final String NORMAL_TEMPLATE = "Normal.dotm";
 
-
     @Override
-    public boolean handlesMagic(InputStream stream) throws IOException {
-        return NPOIFSFileSystem.hasPOIFSHeader(stream);
+    public boolean handlesMagic(InputStream stream) {
+        try {
+            return NPOIFSFileSystem.hasPOIFSHeader(stream);
+        } catch (IOException e) {
+            LOGGER.warn("An exception occured", e);
+            return false;
+        }
     }
 
     @Override
@@ -40,7 +47,7 @@ public class OLE2Bleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException {
+    public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
         try (
                 NPOIFSFileSystem fsIn = new NPOIFSFileSystem(inputStream);
                 NPOIFSFileSystem fs = new NPOIFSFileSystem()
@@ -80,7 +87,7 @@ public class OLE2Bleach implements IBleach {
         }
     }
 
-    Predicate<Entry> removeTemplate(IBleachSession session) {
+    Predicate<Entry> removeTemplate(BleachSession session) {
         return entry -> {
             String entryName = entry.getName();
             if (!SummaryInformation.DEFAULT_STREAM_NAME.equals(entryName)) {
@@ -98,7 +105,7 @@ public class OLE2Bleach implements IBleach {
         };
     }
 
-    void sanitizeDocumentEntry(IBleachSession session, DocumentEntry dsiEntry) {
+    void sanitizeDocumentEntry(BleachSession session, DocumentEntry dsiEntry) {
         try (DocumentInputStream dis = new DocumentInputStream(dsiEntry)) {
             PropertySet ps = new PropertySet(dis);
             SummaryInformation dsi = new SummaryInformation(ps);
@@ -108,45 +115,84 @@ public class OLE2Bleach implements IBleach {
         }
     }
 
-    private void sanitizeSummaryInformation(IBleachSession session, SummaryInformation dsi) {
+    private void sanitizeSummaryInformation(BleachSession session, SummaryInformation dsi) {
+        sanitizeTemplate(session, dsi);
+        sanitizeComments(session, dsi);
+    }
+
+    private void sanitizeComments(BleachSession session, SummaryInformation dsi) {
+        String comments = dsi.getComments();
+        if (comments == null || comments.isEmpty())
+            return;
+
+        LOGGER.trace("Removing the document's Comments (was '{}')", comments);
+
+        dsi.removeComments();
+        Threat threat = new Threat(ThreatType.UNRECOGNIZED_CONTENT,
+                ThreatSeverity.LOW,
+                "Summary Information - Comment",
+                "Comment was: '" + comments + "'",
+                ThreatAction.REMOVE);
+        session.recordThreat(threat);
+    }
+
+    private void sanitizeTemplate(BleachSession session, SummaryInformation dsi) {
         String template = dsi.getTemplate();
+        if (NORMAL_TEMPLATE.equals(template))
+            return;
 
-        if (template != null) {
-            LOGGER.trace("Removing the document's template (was '{}')", template);
-            dsi.removeTemplate();
-            SEVERITY severity = getTemplateSeverity(template);
-            session.recordThreat("Doc. Template", severity);
-        }
+        if (template == null)
+            return;
+
+        LOGGER.trace("Removing the document's template (was '{}')", template);
+        dsi.removeTemplate();
+
+        ThreatSeverity severity = isExternalTemplate(template) ? ThreatSeverity.HIGH : ThreatSeverity.LOW;
+
+        Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
+                severity,
+                "Summary Information - Template",
+                "Template was: '" + template + "'",
+                ThreatAction.REMOVE);
+
+        session.recordThreat(threat);
     }
 
-    SEVERITY getTemplateSeverity(String template) {
-        if (NORMAL_TEMPLATE.equalsIgnoreCase(template)) {
-            return SEVERITY.MEDIUM;
-        }
-
-        if (template.startsWith("http://") ||
+    boolean isExternalTemplate(String template) {
+        return template.startsWith("http://") ||
                 template.startsWith("https://") ||
-                template.startsWith("ftp://")) {
-            return SEVERITY.EXTREME;
-        }
-
-        return SEVERITY.HIGH;
+                template.startsWith("ftp://");
     }
 
-    Predicate<Entry> removeMacros(IBleachSession session) {
+    Predicate<Entry> removeMacros(BleachSession session) {
         return entry -> {
             String entryName = entry.getName();
+
             boolean isMacros = MACRO_ENTRY.equalsIgnoreCase(entryName) ||
                     entryName.contains(VBA_ENTRY);
+
             // Matches _VBA_PROJECT_CUR, VBA, ... :)
             if (!isMacros) {
                 return true;
             }
+
             LOGGER.info("Found Macros, removing them.");
+            StringBuilder infos = new StringBuilder();
             if (entry instanceof DirectoryEntry) {
-                LOGGER.trace("Macros' entries: {}", ((DirectoryEntry) entry).getEntryNames());
+                Set<String> entryNames = ((DirectoryEntry) entry).getEntryNames();
+                LOGGER.trace("Macros' entries: {}", entryNames);
+                infos.append("Entries: ").append(entryNames);
+            } else if (entry instanceof DocumentEntry) {
+                int size = ((DocumentEntry) entry).getSize();
+                infos.append("Size: ").append(size);
             }
-            session.recordThreat("Macros", SEVERITY.EXTREME);
+
+            Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
+                    ThreatSeverity.EXTREME,
+                    entryName,
+                    infos.toString(),
+                    ThreatAction.REMOVE);
+            session.recordThreat(threat);
 
             return false;
         };

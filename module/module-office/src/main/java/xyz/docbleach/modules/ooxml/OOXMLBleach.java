@@ -7,9 +7,12 @@ import org.apache.poi.poifs.filesystem.DocumentFactoryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachException;
-import xyz.docbleach.api.IBleach;
-import xyz.docbleach.api.IBleachSession;
-import xyz.docbleach.api.IBleachSession.SEVERITY;
+import xyz.docbleach.api.BleachSession;
+import xyz.docbleach.api.bleach.Bleach;
+import xyz.docbleach.api.threats.Threat;
+import xyz.docbleach.api.threats.ThreatAction;
+import xyz.docbleach.api.threats.ThreatSeverity;
+import xyz.docbleach.api.threats.ThreatType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,7 +27,7 @@ import java.util.Map;
  * have a list of possible values. Each element/relationship is tied to a mime type, so we just
  * filter at this level: if the mime type is a macro, or an ActiveX object, we remove it.
  */
-public class OOXMLBleach implements IBleach {
+public class OOXMLBleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(OOXMLBleach.class);
     private static final String SUSPICIOUS_OOXML_FORMAT = "Found and removed suspicious content type: '{}' in '{}' (Size: {})";
     private static final String EXTERNAL_RELATION_FORMAT = "Found an external relationship from '{}' to '{}' (type '{}')";
@@ -92,8 +95,13 @@ public class OOXMLBleach implements IBleach {
     }
 
     @Override
-    public boolean handlesMagic(InputStream stream) throws IOException {
-        return DocumentFactoryHelper.hasOOXMLHeader(stream);
+    public boolean handlesMagic(InputStream stream) {
+        try {
+            return DocumentFactoryHelper.hasOOXMLHeader(stream);
+        } catch (IOException e) {
+            LOGGER.warn("An exception occured", e);
+            return false;
+        }
     }
 
     @Override
@@ -102,7 +110,7 @@ public class OOXMLBleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outputStream, IBleachSession session) throws BleachException {
+    public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
         try (OPCPackage pkg = OPCPackage.open(inputStream)) {
             LOGGER.trace("File opened");
             Iterator<PackagePart> it = getPartsIterator(pkg);
@@ -134,7 +142,7 @@ public class OOXMLBleach implements IBleach {
         }
     }
 
-    void remapContentType(IBleachSession session, PackagePart part) throws InvalidFormatException {
+    void remapContentType(BleachSession session, PackagePart part) throws InvalidFormatException {
         String oldContentType = part.getContentType();
         if (!REMAPPED_CONTENT_TYPES.containsKey(oldContentType)) {
             return;
@@ -142,7 +150,16 @@ public class OOXMLBleach implements IBleach {
 
         String newContentType = REMAPPED_CONTENT_TYPES.get(part.getContentType());
         part.setContentType(newContentType);
+
         LOGGER.debug("Content type of '{}' changed from '{}' to '{}'", part.getPartName(), oldContentType, newContentType);
+
+        Threat threat = new Threat(ThreatType.UNRECOGNIZED_CONTENT,
+                ThreatSeverity.LOW,
+                part.getPartName().getName(),
+                "Remapped content type: " + oldContentType,
+                ThreatAction.DISARM
+        );
+        session.recordThreat(threat);
     }
 
     private Iterator<PackagePart> getPartsIterator(OPCPackage pkg) throws BleachException {
@@ -153,11 +170,11 @@ public class OOXMLBleach implements IBleach {
         }
     }
 
-    private void sanitize(IBleachSession session, RelationshipSource pkg, Iterable<PackageRelationship> relationships) {
+    private void sanitize(BleachSession session, RelationshipSource pkg, Iterable<PackageRelationship> relationships) {
         relationships.iterator().forEachRemaining(packageRelationship -> sanitize(session, pkg, packageRelationship));
     }
 
-    private void sanitize(IBleachSession session, RelationshipSource pkg, PackageRelationship relationship) {
+    private void sanitize(BleachSession session, RelationshipSource pkg, PackageRelationship relationship) {
         String relationshipType = relationship.getRelationshipType();
         LOGGER.debug("Relation type '{}' found from '{}' to '{}'", relationshipType, relationship.getSource(), relationship.getTargetURI());
 
@@ -167,17 +184,24 @@ public class OOXMLBleach implements IBleach {
 
         if (isBlacklistedRelationType(relationshipType)) {
             pkg.removeRelationship(relationship.getId());
-            session.recordThreat("Blacklisted relationship type", SEVERITY.HIGH);
+
+            Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
+                    ThreatSeverity.HIGH,
+                    relationship.getSource().getPartName().getName(),
+                    "Blacklisted relationship type: " + relationshipType,
+                    ThreatAction.REMOVE
+            );
+            session.recordThreat(threat);
             return;
         }
 
         if (TargetMode.EXTERNAL.equals(relationship.getTargetMode())) {
             pkg.removeRelationship(relationship.getId());
-            SEVERITY severity = SEVERITY.HIGH;
+            ThreatSeverity severity = ThreatSeverity.HIGH;
 
             if (OOXWORD_SCHEME.equals(relationship.getTargetURI().getScheme())) {
                 // Fake external relationship
-                severity = SEVERITY.EXTREME;
+                severity = ThreatSeverity.EXTREME;
             }
 
             if (LOGGER.isDebugEnabled()) {
@@ -187,7 +211,14 @@ public class OOXMLBleach implements IBleach {
 
                 LOGGER.debug(EXTERNAL_RELATION_FORMAT, sourceUri, targetUri, relationType);
             }
-            session.recordThreat("External relationship", severity);
+
+            Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
+                    ThreatSeverity.HIGH,
+                    relationship.getSource().getPartName().getName(),
+                    "External relationship of type: " + relationshipType,
+                    ThreatAction.REMOVE
+            );
+            session.recordThreat(threat);
         }
     }
 
@@ -209,7 +240,7 @@ public class OOXMLBleach implements IBleach {
         return false;
     }
 
-    void sanitize(IBleachSession session, OPCPackage pkg, PackagePart part) throws InvalidFormatException {
+    void sanitize(BleachSession session, OPCPackage pkg, PackagePart part) throws InvalidFormatException {
         LOGGER.trace("Part name: {}", part.getPartName());
 
         String contentType = part.getContentType();
@@ -222,7 +253,15 @@ public class OOXMLBleach implements IBleach {
         if (isForbiddenType(type) || isStrangeContentType(type)) {
             LOGGER.debug(SUSPICIOUS_OOXML_FORMAT, contentType, part.getPartName(), part.getSize());
             deletePart(pkg, part.getPartName());
-            session.recordThreat("Dynamic content", SEVERITY.HIGH);
+
+            Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
+                    ThreatSeverity.HIGH,
+                    part.getPartName().getName(),
+                    "Forbidden content type: " + type,
+                    ThreatAction.REMOVE
+            );
+            session.recordThreat(threat);
+
         }
     }
 

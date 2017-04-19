@@ -15,7 +15,6 @@ import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static xyz.docbleach.api.IBleachSession.SEVERITY.*;
 
 class OLE2BleachTest extends BleachTestBase {
     private static final String SUMMARY_INFORMATION_ENTRY_NAME = "\005SummaryInformation";
@@ -58,14 +57,14 @@ class OLE2BleachTest extends BleachTestBase {
 
     @Test
     void getTemplateSeverity() {
-        assertEquals(instance.getTemplateSeverity("Normal.dotm"), MEDIUM, "The base template");
+        assertEquals(instance.isExternalTemplate("Normal.dotm"), false, "The base template is not external");
 
-        assertEquals(instance.getTemplateSeverity("my-template.dotm"), HIGH, "Unknown template");
-        assertEquals(instance.getTemplateSeverity("hxxp://my-template.dotm"), HIGH, "Unknown template");
+        assertEquals(instance.isExternalTemplate("my-template.dotm"), false, "Unknown template");
+        assertEquals(instance.isExternalTemplate("hxxp://my-template.dotm"), false, "Unknown template");
 
-        assertEquals(instance.getTemplateSeverity("https://google.com"), EXTREME, "Detects links");
-        assertEquals(instance.getTemplateSeverity("http://google.com"), EXTREME, "Detects links");
-        assertEquals(instance.getTemplateSeverity("ftp://google.com"), EXTREME, "Detects links");
+        assertEquals(instance.isExternalTemplate("https://google.com"), true, "Detects links");
+        assertEquals(instance.isExternalTemplate("http://google.com"), true, "Detects links");
+        assertEquals(instance.isExternalTemplate("ftp://google.com"), true, "Detects links");
 
     }
 
@@ -76,7 +75,7 @@ class OLE2BleachTest extends BleachTestBase {
         Entry entry = mock(Entry.class);
         doReturn("_VBA_PROJECT_CUR").when(entry).getName();
         assertFalse(predicate.test(entry));
-        assertThreatsFound(session, 1, EXTREME);
+        assertThreatsFound(session, 1);
         reset(session);
 
         doReturn(SUMMARY_INFORMATION_ENTRY_NAME).when(entry).getName();

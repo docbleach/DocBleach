@@ -7,14 +7,13 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.impl.SimpleLogger;
 import xyz.docbleach.api.BleachException;
 import xyz.docbleach.api.BleachSession;
-import xyz.docbleach.api.IBleach;
+import xyz.docbleach.api.bleach.DefaultBleach;
 
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ServiceLoader;
 
 @SuppressFBWarnings(value = "DM_EXIT", justification = "Used as an app, an exit code is expected")
 public class Main {
@@ -60,20 +59,13 @@ public class Main {
      * Sanitizes the designated files
      */
     private void sanitize() throws IOException, BleachException {
-        BleachSession session = new BleachSession(inputStream, outputStream);
 
-        ClassLoader pluginClassLoader = getPluginClassLoader();
-
-        ServiceLoader<IBleach> services = java.util.ServiceLoader.load(IBleach.class, pluginClassLoader);
-        services.forEach(session::registerBleach);
-
-        session.findBleach();
-        session.sanitize();
+        BleachSession session = new BleachSession();
+        new DefaultBleach().sanitize(inputStream, outputStream, session);
 
         if (session.threatCount() == 0) {
             LOGGER.info("The file was already safe, so I've just copied it over.");
         } else {
-            LOGGER.warn("Sanitized file has been saved, {} potential threat(s) removed.", session.threatCount());
         }
     }
 
@@ -103,7 +95,13 @@ public class Main {
     }
 
     private void setupLogging() {
-        String level = "INFO";
+        if (verbosityLevel <= 0) {
+            // Verbosity is INFO or OFF, we hide the thread and logger names
+            System.setProperty(SimpleLogger.SHOW_THREAD_NAME_KEY, "false");
+            System.setProperty(SimpleLogger.SHOW_LOG_NAME_KEY, "false");
+        }
+
+        String level;
         switch (verbosityLevel) {
             case 1:
                 level = "DEBUG";
@@ -111,11 +109,8 @@ public class Main {
             case 2:
                 level = "TRACE";
                 break;
-            case 0:
             default:
-                // By default, hide thread & class
-                System.setProperty(SimpleLogger.SHOW_THREAD_NAME_KEY, "false");
-                System.setProperty(SimpleLogger.SHOW_LOG_NAME_KEY, "false");
+                level = "INFO";
                 break;
         }
 
@@ -207,17 +202,17 @@ public class Main {
         outputStream = new FileOutputStream(outFile);
     }
 
-    private InputStream getFileInputStream(File inFile) throws BleachException, FileNotFoundException {
+    private InputStream getFileInputStream(File inFile) throws FileNotFoundException {
         if (!inFile.exists()) {
-            throw new BleachException("Input file does not exist. Quitting.");
+            throw new FileNotFoundException("Input file does not exist. Quitting.");
         }
 
         if (!inFile.canRead()) {
-            throw new BleachException("I can't read the Input File. Quitting.");
+            throw new FileNotFoundException("I can't read the Input File. Quitting.");
         }
 
         if (!inFile.isFile()) {
-            throw new BleachException("I can't read the Input File. Quitting.");
+            throw new FileNotFoundException("I can't read the Input File. Quitting.");
         }
 
         return new BufferedInputStream(new FileInputStream(inFile));

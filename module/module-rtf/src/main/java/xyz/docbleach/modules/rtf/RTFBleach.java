@@ -3,9 +3,12 @@ package xyz.docbleach.modules.rtf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachException;
-import xyz.docbleach.api.IBleach;
-import xyz.docbleach.api.IBleachSession;
-import xyz.docbleach.api.IBleachSession.SEVERITY;
+import xyz.docbleach.api.BleachSession;
+import xyz.docbleach.api.bleach.Bleach;
+import xyz.docbleach.api.threats.Threat;
+import xyz.docbleach.api.threats.ThreatAction;
+import xyz.docbleach.api.threats.ThreatSeverity;
+import xyz.docbleach.api.threats.ThreatType;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -21,17 +24,25 @@ import java.util.Arrays;
  * sanitize the RTF, we just replace every instance of "\obj" with "\0bj" (a zero instead of the
  * letter o). An RTF parser will skip that tag (unknown), and the exploit will likely fail.
  */
-public class RTFBleach implements IBleach {
+public class RTFBleach implements Bleach {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RTFBleach.class);
     private static final byte[] rtfHeader = new byte[]{123, 92, 114, 116, 102};
 
     @Override
-    public boolean handlesMagic(InputStream stream) throws IOException {
+    public boolean handlesMagic(InputStream stream) {
         byte[] header = new byte[5];
         stream.mark(0);
-        int length = stream.read(header);
-        stream.reset();
+        int length;
+
+        try {
+            length = stream.read(header);
+            stream.reset();
+        } catch (IOException e) {
+            LOGGER.warn("An exception occured", e);
+            return false;
+        }
+
         return length == 5 && Arrays.equals(rtfHeader, header);
     }
 
@@ -41,7 +52,7 @@ public class RTFBleach implements IBleach {
     }
 
     @Override
-    public void sanitize(InputStream inputStream, OutputStream outFile, IBleachSession session) throws BleachException {
+    public void sanitize(InputStream inputStream, OutputStream outFile, BleachSession session) throws BleachException {
         LOGGER.debug("This is a RTF file, I'll rename object to 0bject, and hope for it to be enough.");
 
         Charset cs = Charset.isSupported("UTF-8") ? Charset.forName("UTF-8") : Charset.defaultCharset();
@@ -50,12 +61,18 @@ public class RTFBleach implements IBleach {
                 BufferedReader inStream = new BufferedReader(new InputStreamReader(inputStream, cs));
                 BufferedWriter outStream = new BufferedWriter(new OutputStreamWriter(outFile, cs));
         ) {
-
             String l;
             while ((l = inStream.readLine()) != null) {
                 if (l.toLowerCase().contains("\\obj")) {
                     LOGGER.debug("OLE Object found and removed!");
-                    session.recordThreat("Embedded OLE Object", SEVERITY.HIGH);
+
+                    Threat threat = new Threat(ThreatType.BINARY_CONTENT,
+                            ThreatSeverity.HIGH,
+                            "?",
+                            "Embedded OLE Object",
+                            ThreatAction.REMOVE
+                    );
+                    session.recordThreat(threat);
                 }
                 String sanitizedLine = sanitizeLine(l);
                 outStream.write(sanitizedLine);
