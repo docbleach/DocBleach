@@ -116,8 +116,7 @@ public class OOXMLBleach implements IBleach {
         // cf https://msdn.microsoft.com/fr-fr/library/aa338205(v=office.12).aspx
         if (isForbiddenType(part.getContentTypeDetails())) {
             LOGGER.debug(SUSPICIOUS_OOXML_FORMAT, contentType, part.getPartName(), part.getSize());
-            // pkg.clearRelationships();
-            pkg.removePart(part.getPartName());
+            pkg.deletePart(part.getPartName());
             session.recordThreat("Dynamic content", SEVERITY.HIGH);
         }
     }
