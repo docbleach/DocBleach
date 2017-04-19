@@ -213,7 +213,7 @@ public class OOXMLBleach implements Bleach {
             }
 
             Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
-                    ThreatSeverity.HIGH,
+                    severity,
                     relationship.getSource().getPartName().getName(),
                     "External relationship of type: " + relationshipType,
                     ThreatAction.REMOVE
