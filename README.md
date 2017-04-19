@@ -109,8 +109,8 @@ welcome,  and threats evolve - so should we.
 
 Some things would be awesome, though:
 - Having a nice logo
-- Refactoring the code base, maybe separate it into layers
-- Improving the output, so that humans and robots can use it.
+- Have an unified API allowing other apps to use modules
+- Improving the config/output, so that humans and robots can use it.
 - Writing more content to show explain how the sanitation process works, why it works.
 - Adding more stats!
 
