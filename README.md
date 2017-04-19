@@ -26,7 +26,7 @@ $ mvn clean package
 [INFO] Final Memory: 29M/234M
 [INFO] ------------------------------------------------------------------------
 ```
-The final jar is stored in `target/docbleach.jar`.
+The final jar is stored in `cli/target/docbleach.jar`.
 
 
 To use DocBleach, you may either use the [Web Interface][webI] or run it in CLI:
