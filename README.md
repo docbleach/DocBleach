@@ -111,9 +111,8 @@ Don't expect the code base to change everyday, but feel free to contribute: new 
 welcome,  and threats evolve - so should we.
 
 Some things would be awesome, though:
-- Having a nice logo
-- Have an unified API allowing other apps to use modules
-- Improving the config/output, so that humans and robots can use it.
+- Adding a way to configure bleaches
+- Write tests!
 - Writing more content to show explain how the sanitation process works, why it works.
 - Adding more stats!
 
