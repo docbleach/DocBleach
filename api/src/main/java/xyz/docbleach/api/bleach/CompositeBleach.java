@@ -2,19 +2,19 @@ package xyz.docbleach.api.bleach;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.util.CloseShieldInputStream;
 import xyz.docbleach.api.util.StreamUtils;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 
 public class CompositeBleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeBleach.class);
-    private final Collection<Bleach> bleaches = new HashSet<>();
+    private final Collection<Bleach> bleaches = new ArrayList<>();
     private final String name;
 
     public CompositeBleach(Bleach... bleaches) {
