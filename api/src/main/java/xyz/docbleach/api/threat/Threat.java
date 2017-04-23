@@ -1,6 +1,8 @@
 package xyz.docbleach.api.threat;
 
-public class Threat {
+import java.io.Serializable;
+
+public class Threat implements Serializable {
     private final ThreatType type;
     private final ThreatSeverity severity;
     private final String location;
