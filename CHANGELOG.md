@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.0.5] - 2017-04-23
+
+### :sparkles: New features
+- New project logo and CHANGELOG file
+- **Archive Bleach** added to handle *zip files*, recursively sanitising the files
+- Code cleaned up to match conventions
+
+### :fire: Backward incompatible changes
+- **API** changed: package names and methods changed.
+
+[:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.4...v0.0.5)
 
 ## [0.0.4] - 2017-04-20
 
