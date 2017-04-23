@@ -56,6 +56,11 @@
             <artifactId>module-rtf</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>xyz.docbleach</groupId>
+            <artifactId>module-zip</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
     </dependencies>
 
     <build>

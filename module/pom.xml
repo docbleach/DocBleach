@@ -19,6 +19,7 @@
         <module>module-office</module>
         <module>module-pdf</module>
         <module>module-rtf</module>
+        <module>module-zip</module>
     </modules>
 
     <dependencies>
