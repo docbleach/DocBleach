@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.util.CloseShieldInputStream;
+import xyz.docbleach.api.util.StreamUtils;
 
 import java.io.*;
 import java.util.Collection;
@@ -60,20 +61,12 @@ public class CompositeBleach implements Bleach {
         try {
             if (os == null) {
                 //no bleach is able to handle this file
-                copy(is, outputStream);
+                StreamUtils.copy(is, outputStream);
             } else {
                 os.writeTo(outputStream);
             }
         } catch (IOException e) {
             LOGGER.error("Could not copy streams", e);
-        }
-    }
-
-    private void copy(InputStream is, OutputStream os) throws IOException {
-        byte[] buffer = new byte[100];
-        int len;
-        while ((len = is.read(buffer)) != -1) {
-            os.write(buffer, 0, len);
         }
     }
 }
