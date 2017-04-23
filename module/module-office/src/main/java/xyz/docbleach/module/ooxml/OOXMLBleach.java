@@ -3,6 +3,7 @@ package xyz.docbleach.module.ooxml;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.*;
 import org.apache.poi.openxml4j.opc.internal.ContentType;
+import org.apache.poi.poifs.filesystem.DocumentFactoryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
@@ -17,7 +18,6 @@ import xyz.docbleach.api.util.StreamUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -79,7 +79,6 @@ public class OOXMLBleach implements Bleach {
     };
 
     private static final Map<String, String> REMAPPED_CONTENT_TYPES = new HashMap<>();
-    private static final byte[] MAGIC_HEADER = new byte[]{0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00};
 
     static {
         // Word
@@ -98,19 +97,12 @@ public class OOXMLBleach implements Bleach {
 
     @Override
     public boolean handlesMagic(InputStream stream) {
-        byte[] header = new byte[8];
-        stream.mark(8);
-        int length;
-
         try {
-            length = stream.read(header);
-            stream.reset();
+            return DocumentFactoryHelper.hasOOXMLHeader(stream);
         } catch (IOException e) {
             LOGGER.warn("An exception occured", e);
             return false;
         }
-
-        return length == 8 && Arrays.equals(header, MAGIC_HEADER);
     }
 
     @Override
