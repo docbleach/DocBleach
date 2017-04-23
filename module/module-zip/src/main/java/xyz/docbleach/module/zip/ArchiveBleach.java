@@ -21,7 +21,7 @@ public class ArchiveBleach implements Bleach {
     @Override
     public boolean handlesMagic(InputStream stream) {
         byte[] header = new byte[4];
-        stream.mark(0);
+        stream.mark(4);
         int length;
 
         try {
