@@ -73,14 +73,16 @@ public class ArchiveBleach implements Bleach {
         ByteArrayOutputStream streamBuilder = new ByteArrayOutputStream();
 
         int bytesRead;
-        byte[] tempBuffer = new byte[(int) entry.getSize()];
+        // @TODO: check real file size?
+        byte[] tempBuffer = new byte[1024];
         while ((bytesRead = zipIn.read(tempBuffer)) != -1) {
             streamBuilder.write(tempBuffer, 0, bytesRead);
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
         ByteArrayInputStream bais = new ByteArrayInputStream(streamBuilder.toByteArray());
         CloseShieldInputStream is = new CloseShieldInputStream(new BufferedInputStream(bais));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
 
         try {
             session.sanitize(is, out);
