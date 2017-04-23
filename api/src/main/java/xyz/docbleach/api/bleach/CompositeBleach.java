@@ -55,7 +55,7 @@ public class CompositeBleach implements Bleach {
                 try {
                     os.close();
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    LOGGER.error("Error in CompositeBleach", e);
                 }
             }
 
