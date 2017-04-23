@@ -5,9 +5,9 @@ import org.apache.poi.openxml4j.opc.*;
 import org.apache.poi.openxml4j.opc.internal.ContentType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.threat.Threat;
 import xyz.docbleach.api.threat.ThreatAction;
 import xyz.docbleach.api.threat.ThreatSeverity;
@@ -123,7 +123,7 @@ public class OOXMLBleach implements Bleach {
         try {
             inputStream.mark(inputStream.available() + 1);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Error in OOXMLBleach", e);
         }
 
         try (OPCPackage pkg = OPCPackage.open(inputStream)) {
@@ -139,7 +139,7 @@ public class OOXMLBleach implements Bleach {
                 inputStream.reset();
                 StreamUtils.copy(inputStream, outputStream);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOGGER.error("Error in OOXMLBleach", e);
             }
         } catch (IOException e) {
             throw new BleachException(e);
@@ -268,7 +268,7 @@ public class OOXMLBleach implements Bleach {
         return false;
     }
 
-    void sanitize(BleachSession session, OPCPackage pkg, PackagePart part) throws InvalidFormatException {
+    void sanitize(BleachSession session, OPCPackage pkg, PackagePart part) {
         LOGGER.trace("Part name: {}", part.getPartName());
 
         String contentType = part.getContentType();
@@ -311,10 +311,10 @@ public class OOXMLBleach implements Bleach {
     }
 
     boolean isForbiddenType(ContentType type) {
-        String full_type = type.toString(false);
+        String fullType = type.toString(false);
 
         for (String _type : BLACKLISTED_CONTENT_TYPES) {
-            if (_type.equalsIgnoreCase(full_type))
+            if (_type.equalsIgnoreCase(fullType))
                 return true;
         }
 

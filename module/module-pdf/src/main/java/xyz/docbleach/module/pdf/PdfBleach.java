@@ -25,9 +25,9 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.threat.Threat;
 import xyz.docbleach.api.threat.ThreatAction;
 import xyz.docbleach.api.threat.ThreatSeverity;
@@ -88,7 +88,7 @@ public class PdfBleach implements Bleach {
     }
 
     private void sanitize(ScratchFile scratchFile, RandomAccessRead source, OutputStream outputStream, BleachSession session) throws IOException, BleachException {
-        String password = getPasswordFor(scratchFile, source, session);
+        String password = getPasswordFor(scratchFile, source);
 
         PDFParser parser = new PDFParser(source, password, scratchFile);
         parser.parse();
@@ -111,7 +111,7 @@ public class PdfBleach implements Bleach {
         source.rewind((int) source.getPosition());
     }
 
-    private String getPasswordFor(ScratchFile scratchFile, RandomAccessRead source, BleachSession session) throws IOException, BleachException {
+    private String getPasswordFor(ScratchFile scratchFile, RandomAccessRead source) throws IOException, BleachException {
         for (String pwd : COMMON_PASSWORDS) {
             if (testPassword(scratchFile, source, pwd)) {
                 LOGGER.debug("Password was guessed: '{}'", pwd);

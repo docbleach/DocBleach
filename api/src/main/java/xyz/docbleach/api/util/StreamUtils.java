@@ -5,6 +5,10 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class StreamUtils {
+    private StreamUtils() {
+        throw new IllegalAccessError("Utility class");
+    }
+
     public static void copy(InputStream is, OutputStream os) throws IOException {
         byte[] buffer = new byte[100];
         int len;

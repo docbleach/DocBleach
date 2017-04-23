@@ -7,6 +7,7 @@ import xyz.docbleach.api.threat.Threat;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -14,7 +15,7 @@ import java.util.Collection;
  * A Bleach Session handles the data a bleach needs to store: list of the threats removed, for instance
  * May be used in the future to store configuration (file's password, for instance) or callbacks
  */
-public class BleachSession {
+public class BleachSession implements Serializable {
     private static final int MAX_ONGOING_TASKS = 10;
     private final transient Bleach bleach;
     private final Collection<Threat> threats = new ArrayList<>();

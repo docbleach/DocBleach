@@ -65,7 +65,7 @@ public class ArchiveBleach implements Bleach {
 
             zipOut.finish();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error("Error in ArchiveBleach", e);
         }
     }
 

@@ -12,10 +12,8 @@ public class UnsafeSecurityManager extends SecurityManager {
 
     @Override
     public void checkPermission(Permission perm) {
-        switch (perm.getName()) {
-            case "setSecurityManager":
-                throw new AccessControlException("Restricted Action", perm);
-        }
+        if ("setSecurityManager".equals(perm.getName()))
+            throw new AccessControlException("Restricted Action", perm);
     }
 
     @Override
