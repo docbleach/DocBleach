@@ -47,15 +47,30 @@ public class CompositeBleach implements Bleach {
         CloseShieldInputStream is = new CloseShieldInputStream(inputStream);
 
         for (Bleach b : bleaches) {
-            if (os != null) {
-                is = new BufferedInputStream(new ByteArrayInputStream(os.toByteArray()));
+            if (os != null && is == null) {
+                // We check if "is" is null to prevent useless object creation
+                ByteArrayInputStream bais = new ByteArrayInputStream(os.toByteArray());
+                is = new CloseShieldInputStream(new BufferedInputStream(bais, bais.available()));
+
+                try {
+                    os.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
 
             if (!b.handlesMagic(is))
                 continue;
 
+            LOGGER.trace("Using bleach: {}", b.getName());
             os = new ByteArrayOutputStream();
             b.sanitize(is, os, session);
+            try {
+                is.close();
+                is = null;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         try {

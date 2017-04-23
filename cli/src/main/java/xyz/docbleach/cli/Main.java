@@ -61,8 +61,9 @@ public class Main {
      * Sanitizes the designated files
      */
     private void sanitize() throws BleachException {
-        BleachSession session = new BleachSession();
-        new DefaultBleach().sanitize(inputStream, outputStream, session);
+        BleachSession session = new BleachSession(new DefaultBleach());
+
+        session.sanitize(inputStream, outputStream);
 
         if (jsonOutput) {
             Gson gson = new Gson();
