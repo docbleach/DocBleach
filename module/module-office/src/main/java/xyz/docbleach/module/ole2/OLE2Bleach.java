@@ -1,16 +1,16 @@
-package xyz.docbleach.modules.ole2;
+package xyz.docbleach.module.ole2;
 
 import org.apache.poi.hpsf.*;
 import org.apache.poi.poifs.filesystem.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.BleachException;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
-import xyz.docbleach.api.threats.Threat;
-import xyz.docbleach.api.threats.ThreatAction;
-import xyz.docbleach.api.threats.ThreatSeverity;
-import xyz.docbleach.api.threats.ThreatType;
+import xyz.docbleach.api.threat.Threat;
+import xyz.docbleach.api.threat.ThreatAction;
+import xyz.docbleach.api.threat.ThreatSeverity;
+import xyz.docbleach.api.threat.ThreatType;
 
 import java.io.IOException;
 import java.io.InputStream;

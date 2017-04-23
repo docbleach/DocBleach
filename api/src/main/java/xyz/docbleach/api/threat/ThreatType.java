@@ -1,4 +1,4 @@
-package xyz.docbleach.api.threats;
+package xyz.docbleach.api.threat;
 
 /**
  * Used to group threats together

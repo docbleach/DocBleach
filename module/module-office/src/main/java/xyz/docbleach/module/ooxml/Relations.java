@@ -1,4 +1,4 @@
-package xyz.docbleach.modules.ooxml;
+package xyz.docbleach.module.ooxml;
 
 @SuppressWarnings("ALL")
 public final class Relations {

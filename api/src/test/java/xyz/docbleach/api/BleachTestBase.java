@@ -1,6 +1,6 @@
 package xyz.docbleach.api;
 
-import xyz.docbleach.api.threats.Threat;
+import xyz.docbleach.api.threat.Threat;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.times;

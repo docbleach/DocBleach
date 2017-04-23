@@ -1,4 +1,4 @@
-package xyz.docbleach.api.utils;
+package xyz.docbleach.api.util;
 
 /*
  * Licensed to the Apache Software Foundation (ASF) under one or more
@@ -40,5 +40,9 @@ public class CloseShieldInputStream extends FilterInputStream {
     @Override
     public void close() throws IOException {
         // no-action
+    }
+
+    public void _close() throws IOException {
+        super.close();
     }
 }

@@ -1,4 +1,4 @@
-package xyz.docbleach.api;
+package xyz.docbleach.api.exception;
 
 /**
  * Wrapper for the Bleach exceptions.

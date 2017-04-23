@@ -1,6 +1,6 @@
 package xyz.docbleach.api.bleach;
 
-import xyz.docbleach.api.BleachException;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 
 import java.io.InputStream;

@@ -2,8 +2,9 @@ package xyz.docbleach.api.bleach;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.BleachException;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
+import xyz.docbleach.api.util.CloseShieldInputStream;
 
 import java.io.*;
 import java.util.Collection;
@@ -42,7 +43,7 @@ public class CompositeBleach implements Bleach {
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
         ByteArrayOutputStream os = null;
-        InputStream is = inputStream;
+        CloseShieldInputStream is = new CloseShieldInputStream(inputStream);
 
         for (Bleach b : bleaches) {
             if (os != null) {

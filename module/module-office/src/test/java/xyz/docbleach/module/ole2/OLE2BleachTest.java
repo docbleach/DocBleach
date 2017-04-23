@@ -1,4 +1,4 @@
-package xyz.docbleach.modules.ole2;
+package xyz.docbleach.module.ole2;
 
 import org.apache.poi.poifs.filesystem.DocumentEntry;
 import org.apache.poi.poifs.filesystem.Entry;

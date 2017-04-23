@@ -1,4 +1,4 @@
-package xyz.docbleach.modules.ooxml;
+package xyz.docbleach.module.ooxml;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;

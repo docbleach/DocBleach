@@ -1,22 +1,23 @@
-package xyz.docbleach.modules.ooxml;
+package xyz.docbleach.module.ooxml;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.*;
 import org.apache.poi.openxml4j.opc.internal.ContentType;
-import org.apache.poi.poifs.filesystem.DocumentFactoryHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.BleachException;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
-import xyz.docbleach.api.threats.Threat;
-import xyz.docbleach.api.threats.ThreatAction;
-import xyz.docbleach.api.threats.ThreatSeverity;
-import xyz.docbleach.api.threats.ThreatType;
+import xyz.docbleach.api.threat.Threat;
+import xyz.docbleach.api.threat.ThreatAction;
+import xyz.docbleach.api.threat.ThreatSeverity;
+import xyz.docbleach.api.threat.ThreatType;
+import xyz.docbleach.api.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -78,6 +79,7 @@ public class OOXMLBleach implements Bleach {
     };
 
     private static final Map<String, String> REMAPPED_CONTENT_TYPES = new HashMap<>();
+    private static final byte[] MAGIC_HEADER = new byte[]{0x50, 0x4B, 0x03, 0x04, 0x14, 0x00, 0x06, 0x00};
 
     static {
         // Word
@@ -96,12 +98,19 @@ public class OOXMLBleach implements Bleach {
 
     @Override
     public boolean handlesMagic(InputStream stream) {
+        byte[] header = new byte[8];
+        stream.mark(8);
+        int length;
+
         try {
-            return DocumentFactoryHelper.hasOOXMLHeader(stream);
+            length = stream.read(header);
+            stream.reset();
         } catch (IOException e) {
             LOGGER.warn("An exception occured", e);
             return false;
         }
+
+        return length == 8 && Arrays.equals(header, MAGIC_HEADER);
     }
 
     @Override
@@ -111,34 +120,53 @@ public class OOXMLBleach implements Bleach {
 
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
+        try {
+            inputStream.mark(inputStream.available() + 1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         try (OPCPackage pkg = OPCPackage.open(inputStream)) {
-            LOGGER.trace("File opened");
-            Iterator<PackagePart> it = getPartsIterator(pkg);
+            sanitize(pkg, session);
 
-            pkg.ensureRelationships();
-
-            sanitize(session, pkg, pkg.getRelationships());
-
-            PackagePart part;
-            while (it.hasNext()) {
-                part = it.next();
-                sanitize(session, pkg, part);
-
-                if (!part.isRelationshipPart()) {
-                    sanitize(session, part, part.getRelationships());
-                }
-
-                if (part.isDeleted())
-                    continue;
-
-                remapContentType(session, part);
-            }
             pkg.save(outputStream);
 
             // Prevent from writing the InputStream, even if this sounds absurd.
             pkg.revert();
-        } catch (InvalidFormatException | IOException e) {
+        } catch (InvalidFormatException ignored) {
+            // We can't canitize this file, so we ignore it
+            try {
+                inputStream.reset();
+                StreamUtils.copy(inputStream, outputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
             throw new BleachException(e);
+        }
+    }
+
+    public void sanitize(OPCPackage pkg, BleachSession session) throws BleachException, InvalidFormatException {
+        LOGGER.trace("File opened");
+        Iterator<PackagePart> it = getPartsIterator(pkg);
+
+        pkg.ensureRelationships();
+
+        sanitize(session, pkg, pkg.getRelationships());
+
+        PackagePart part;
+        while (it.hasNext()) {
+            part = it.next();
+            sanitize(session, pkg, part);
+
+            if (!part.isRelationshipPart()) {
+                sanitize(session, part, part.getRelationships());
+            }
+
+            if (part.isDeleted())
+                continue;
+
+            remapContentType(session, part);
         }
     }
 

@@ -1,4 +1,4 @@
-package xyz.docbleach.modules.pdf;
+package xyz.docbleach.module.pdf;
 
 
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;

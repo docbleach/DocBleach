@@ -1,4 +1,4 @@
-package xyz.docbleach.modules.pdf;
+package xyz.docbleach.module.pdf;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.pdfbox.cos.*;
@@ -25,14 +25,13 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.BleachException;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
-import xyz.docbleach.api.threats.Threat;
-import xyz.docbleach.api.threats.ThreatAction;
-import xyz.docbleach.api.threats.ThreatSeverity;
-import xyz.docbleach.api.threats.ThreatType;
-import xyz.docbleach.api.utils.CloseShieldInputStream;
+import xyz.docbleach.api.threat.Threat;
+import xyz.docbleach.api.threat.ThreatAction;
+import xyz.docbleach.api.threat.ThreatSeverity;
+import xyz.docbleach.api.threat.ThreatType;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -58,7 +57,7 @@ public class PdfBleach implements Bleach {
     @Override
     public boolean handlesMagic(InputStream stream) {
         byte[] header = new byte[4];
-        stream.mark(0);
+        stream.mark(8);
         int length;
 
         try {
@@ -80,8 +79,7 @@ public class PdfBleach implements Bleach {
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
         try (ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING)) {
-            InputStream closeShieldInputStream = new CloseShieldInputStream(inputStream);
-            RandomAccessRead source = new RandomAccessBufferedFileInputStream(closeShieldInputStream);
+            RandomAccessRead source = new RandomAccessBufferedFileInputStream(inputStream);
 
             sanitize(scratchFile, source, outputStream, session);
         } catch (IOException e) {

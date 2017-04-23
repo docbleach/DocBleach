@@ -1,6 +1,6 @@
 package xyz.docbleach.api;
 
-import xyz.docbleach.api.threats.Threat;
+import xyz.docbleach.api.threat.Threat;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +17,6 @@ public class BleachSession {
      *
      * @param threat The removed threat object, containing the threat type and more information
      */
-
     public void recordThreat(Threat threat) {
         if (threat == null)
             return;
