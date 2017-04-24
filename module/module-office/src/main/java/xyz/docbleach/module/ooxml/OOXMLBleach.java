@@ -1,5 +1,6 @@
 package xyz.docbleach.module.ooxml;
 
+import org.apache.poi.UnsupportedFileFormatException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.openxml4j.opc.*;
 import org.apache.poi.openxml4j.opc.internal.ContentType;
@@ -124,9 +125,9 @@ public class OOXMLBleach implements Bleach {
 
             // Prevent from writing the InputStream, even if this sounds absurd.
             pkg.revert();
-        } catch (InvalidFormatException e) {
+        } catch (InvalidFormatException | UnsupportedFileFormatException e) {
             // We can't canitize this file, so we ignore it
-            LOGGER.error("InvalidFormatException", e);
+            LOGGER.error("Invalid format", e);
             try {
                 inputStream.reset();
                 StreamUtils.copy(inputStream, outputStream);
@@ -146,7 +147,7 @@ public class OOXMLBleach implements Bleach {
             ByteArrayOutputStream bucket = new ByteArrayOutputStream();
             StreamUtils.copy(oldInputStream, bucket);
             oldInputStream.close();
-            
+
             inputStream = new ByteArrayInputStream(bucket.toByteArray());
         }
 
