@@ -28,6 +28,7 @@ deploy:
     on:
       branch: master
       repo: docbleach/DocBleach
+      tags: true
   - provider: releases
     skip_cleanup: true
     api_key:
