@@ -86,7 +86,7 @@ public class ArchiveBleach implements Bleach {
             streamBuilder.close();
         }
 
-        ZipEntry newEntry = new ZipEntry(entry);
+        ZipEntry newEntry = cloneEntry(entry);
         newEntry.setCompressedSize(-1);
         newEntry.setSize(out.size());
         newEntry.setComment(newEntry.getComment() + " - DocBleach");
@@ -94,5 +94,26 @@ public class ArchiveBleach implements Bleach {
         zipOut.putNextEntry(newEntry);
         out.writeTo(zipOut);
         out.close();
+    }
+
+    // Copies everything except size & CRC-32
+    private ZipEntry cloneEntry(ZipEntry entry) {
+        ZipEntry newEntry = new ZipEntry(entry.getName());
+
+        newEntry.setTime(entry.getTime());
+        if (entry.getCreationTime() != null) {
+            newEntry.setCreationTime(entry.getCreationTime());
+        }
+        if (entry.getLastModifiedTime() != null) {
+            newEntry.setLastModifiedTime(entry.getLastModifiedTime());
+        }
+        if (entry.getLastAccessTime() != null) {
+            newEntry.setLastAccessTime(entry.getLastAccessTime());
+        }
+        newEntry.setComment(entry.getComment());
+        newEntry.setExtra(entry.getExtra());
+        newEntry.setMethod(entry.getMethod());
+
+        return newEntry;
     }
 }
