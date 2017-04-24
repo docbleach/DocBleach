@@ -1,6 +1,16 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.0.6] - 2017-04-24
+
+### :sparkles: New features
+- Add Coverity scan for tagged commits
+- Copy OOXML files into memory before processing them, and rollback on failure
+- Improved logging, and minor bugs fixed (involving zip, mainly)
+
+[:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.5...v0.0.6)
+
+
 ## [0.0.5] - 2017-04-23
 
 ### :sparkles: New features
@@ -12,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - **API** changed: package names and methods changed.
 
 [:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.4...v0.0.5)
+
 
 ## [0.0.4] - 2017-04-20
 
@@ -30,6 +41,7 @@ All notable changes to this project will be documented in this file.
 
 [:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.3...v0.0.4)
 
+
 ## [0.0.3] - 2017-04-19
 #### :bug: Bug fixes
 A regression was introduced in commit 271f1e60, preventing OOXML files from being sanitized.
@@ -37,6 +49,7 @@ A regression was introduced in commit 271f1e60, preventing OOXML files from bein
 That's all.
 
 [:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.2...v0.0.3)
+
 
 ## [0.0.2] - 2017-04-19
 ### :sparkles: New features
@@ -56,6 +69,7 @@ That's all.
 - `-in` does not handle network files anymore, because of the added code maintenance required (SSL checks, ...)
 
 [:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.1...v0.0.2)
+
 
 ## [0.0.1] - 2017-03-29
 :tada: This is the first release of the *DocBleach* project. May there be plenty!
