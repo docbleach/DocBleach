@@ -2,17 +2,17 @@ package xyz.docbleach.module.rtf;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
+import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.threat.Threat;
 import xyz.docbleach.api.threat.ThreatAction;
 import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
+import xyz.docbleach.api.util.StreamUtils;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.util.Arrays;
 
 /**
  * RTF files are not that common nowadays, but it is a simple format and is a perfect bleach
@@ -25,25 +25,12 @@ import java.util.Arrays;
  * letter o). An RTF parser will skip that tag (unknown), and the exploit will likely fail.
  */
 public class RTFBleach implements Bleach {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(RTFBleach.class);
-    private static final byte[] rtfHeader = new byte[]{123, 92, 114, 116, 102};
+    private static final byte[] RTF_MAGIC = new byte[]{123, 92, 114, 116, 102};
 
     @Override
     public boolean handlesMagic(InputStream stream) {
-        byte[] header = new byte[5];
-        stream.mark(0);
-        int length;
-
-        try {
-            length = stream.read(header);
-            stream.reset();
-        } catch (IOException e) {
-            LOGGER.warn("An exception occured", e);
-            return false;
-        }
-
-        return length == 5 && Arrays.equals(rtfHeader, header);
+        return StreamUtils.hasHeader(stream, RTF_MAGIC);
     }
 
     @Override

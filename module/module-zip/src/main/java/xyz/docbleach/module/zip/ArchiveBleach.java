@@ -7,32 +7,20 @@ import xyz.docbleach.api.bleach.Bleach;
 import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.exception.RecursionBleachException;
 import xyz.docbleach.api.util.CloseShieldInputStream;
+import xyz.docbleach.api.util.StreamUtils;
 
 import java.io.*;
-import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class ArchiveBleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(ArchiveBleach.class);
-    private static final byte[] MAGIC_HEADER = new byte[]{0x50, 0x4B, 0x03, 0x04};
+    private static final byte[] ZIP_MAGIC = new byte[]{0x50, 0x4B, 0x03, 0x04};
 
     @Override
     public boolean handlesMagic(InputStream stream) {
-        byte[] header = new byte[4];
-        stream.mark(4);
-        int length;
-
-        try {
-            length = stream.read(header);
-            stream.reset();
-        } catch (IOException e) {
-            LOGGER.warn("An exception occured", e);
-            return false;
-        }
-
-        return length == 4 && Arrays.equals(header, MAGIC_HEADER);
+        return StreamUtils.hasHeader(stream, ZIP_MAGIC);
     }
 
     @Override

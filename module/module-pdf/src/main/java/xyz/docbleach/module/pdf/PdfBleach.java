@@ -32,11 +32,11 @@ import xyz.docbleach.api.threat.Threat;
 import xyz.docbleach.api.threat.ThreatAction;
 import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
+import xyz.docbleach.api.util.StreamUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +47,7 @@ import java.util.Map;
  */
 public class PdfBleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfBleach.class);
-    private static final byte[] pdfMagic = new byte[]{37, 80, 68, 70};
+    private static final byte[] PDF_MAGIC = new byte[]{37, 80, 68, 70};
 
     private static final String[] COMMON_PASSWORDS = new String[]{
             null, "", "test", "example", "sample", "malware", "infected", "password"
@@ -56,19 +56,7 @@ public class PdfBleach implements Bleach {
 
     @Override
     public boolean handlesMagic(InputStream stream) {
-        byte[] header = new byte[4];
-        stream.mark(8);
-        int length;
-
-        try {
-            length = stream.read(header);
-            stream.reset();
-        } catch (IOException e) {
-            LOGGER.warn("An exception occured", e);
-            return false;
-        }
-
-        return length == 4 && Arrays.equals(header, pdfMagic);
+        return StreamUtils.hasHeader(stream, PDF_MAGIC);
     }
 
     @Override
