@@ -1,5 +1,7 @@
 package xyz.docbleach.api;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.bleach.Bleach;
 import xyz.docbleach.api.exception.BleachException;
 import xyz.docbleach.api.exception.RecursionBleachException;
@@ -16,6 +18,7 @@ import java.util.Collection;
  * May be used in the future to store configuration (file's password, for instance) or callbacks
  */
 public class BleachSession implements Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BleachSession.class);
     private static final int MAX_ONGOING_TASKS = 10;
     private final transient Bleach bleach;
     private final Collection<Threat> threats = new ArrayList<>();
@@ -36,6 +39,7 @@ public class BleachSession implements Serializable {
     public void recordThreat(Threat threat) {
         if (threat == null)
             return;
+        LOGGER.trace("Threat recorded: " + threat);
         threats.add(threat);
     }
 
