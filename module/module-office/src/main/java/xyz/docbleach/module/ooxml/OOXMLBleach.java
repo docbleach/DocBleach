@@ -15,9 +15,7 @@ import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
 import xyz.docbleach.api.util.StreamUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -113,9 +111,10 @@ public class OOXMLBleach implements Bleach {
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
         try {
-            inputStream.mark(inputStream.available() + 1);
+            inputStream = prepareInputStream(inputStream);
         } catch (IOException e) {
             LOGGER.error("Error in OOXMLBleach", e);
+            return;
         }
 
         try (OPCPackage pkg = OPCPackage.open(inputStream)) {
@@ -125,17 +124,35 @@ public class OOXMLBleach implements Bleach {
 
             // Prevent from writing the InputStream, even if this sounds absurd.
             pkg.revert();
-        } catch (InvalidFormatException ignored) {
+        } catch (InvalidFormatException e) {
             // We can't canitize this file, so we ignore it
+            LOGGER.error("InvalidFormatException", e);
             try {
                 inputStream.reset();
                 StreamUtils.copy(inputStream, outputStream);
-            } catch (IOException e) {
-                LOGGER.error("Error in OOXMLBleach", e);
+            } catch (IOException e2) {
+                LOGGER.error("Error in OOXMLBleach", e2);
             }
         } catch (IOException e) {
             throw new BleachException(e);
         }
+    }
+
+    private InputStream prepareInputStream(InputStream inputStream) throws IOException {
+        // Once opened, the stream can't be recovered. We need to create a "backup" of it, just in case the file is a
+        // normal Zip archive and not an OOXML document.
+        if (!(inputStream instanceof ByteArrayInputStream)) {
+            InputStream oldInputStream = inputStream;
+            ByteArrayOutputStream bucket = new ByteArrayOutputStream();
+            StreamUtils.copy(oldInputStream, bucket);
+            oldInputStream.close();
+            
+            inputStream = new ByteArrayInputStream(bucket.toByteArray());
+        }
+
+        inputStream.mark(inputStream.available() + 1);
+
+        return inputStream;
     }
 
     public void sanitize(OPCPackage pkg, BleachSession session) throws BleachException, InvalidFormatException {
