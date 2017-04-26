@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.0.7] - 2017-04-26
+
+### :sparkles: New features
+- The PDF Bleach now handles embedded files, and sanitizes them!
+
+### :bug: Bug fixes
+- Office: The `UnsupportedFileFormatException` is now handled correctly
+
+### :fire: Backward incompatible changes
+- Modules are no more shaded by default
+
+[:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.6...v0.0.7)
+
+
+
 ## [0.0.6] - 2017-04-24
 
 ### :sparkles: New features
