@@ -33,8 +33,8 @@ import java.io.InputStream;
  */
 public class CloseShieldInputStream extends FilterInputStream {
 
-    public CloseShieldInputStream(InputStream inFile) {
-        super(inFile);
+    public CloseShieldInputStream(InputStream inStream) {
+        super(inStream);
     }
 
     @Override

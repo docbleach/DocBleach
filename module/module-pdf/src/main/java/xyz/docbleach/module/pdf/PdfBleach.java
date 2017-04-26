@@ -7,17 +7,14 @@ import org.apache.pdfbox.io.RandomAccessBufferedFileInputStream;
 import org.apache.pdfbox.io.RandomAccessRead;
 import org.apache.pdfbox.io.ScratchFile;
 import org.apache.pdfbox.pdfparser.PDFParser;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageTree;
+import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.common.COSObjectable;
 import org.apache.pdfbox.pdmodel.common.PDDestinationOrAction;
+import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
+import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
-import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
-import org.apache.pdfbox.pdmodel.interactive.action.PDAnnotationAdditionalActions;
-import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
-import org.apache.pdfbox.pdmodel.interactive.action.PDFormFieldAdditionalActions;
-import org.apache.pdfbox.pdmodel.interactive.action.PDPageAdditionalActions;
+import org.apache.pdfbox.pdmodel.interactive.action.*;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
@@ -34,12 +31,12 @@ import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
 import xyz.docbleach.api.util.StreamUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * PDF parsing is a bit tricky: everything may or may not be linked to additional actions, so we
@@ -48,11 +45,10 @@ import java.util.Map;
 public class PdfBleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfBleach.class);
     private static final byte[] PDF_MAGIC = new byte[]{37, 80, 68, 70};
-
     private static final String[] COMMON_PASSWORDS = new String[]{
             null, "", "test", "example", "sample", "malware", "infected", "password"
     };
-    private static final MemoryUsageSetting MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMixed(1024);
+    private static final MemoryUsageSetting MEMORY_USAGE_SETTING = MemoryUsageSetting.setupMixed(1024 * 100);
 
     @Override
     public boolean handlesMagic(InputStream stream) {
@@ -66,9 +62,9 @@ public class PdfBleach implements Bleach {
 
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
-        try (ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING)) {
-            RandomAccessRead source = new RandomAccessBufferedFileInputStream(inputStream);
-
+        try (ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING);
+             RandomAccessRead source = new RandomAccessBufferedFileInputStream(inputStream)
+        ) {
             sanitize(scratchFile, source, outputStream, session);
         } catch (IOException e) {
             throw new BleachException(e);
@@ -76,16 +72,16 @@ public class PdfBleach implements Bleach {
     }
 
     private void sanitize(ScratchFile scratchFile, RandomAccessRead source, OutputStream outputStream, BleachSession session) throws IOException, BleachException {
-        String password = getPasswordFor(scratchFile, source);
+        final PDDocument doc = getDocument(scratchFile, source);
 
-        PDFParser parser = new PDFParser(source, password, scratchFile);
-        parser.parse();
-        PDDocument doc = parser.getPDDocument();
+        // Can't remember why I used this, but this method doesn't know the passord anymore
+        // So this is just impossible to achieve.
+        // doc.protect(new StandardProtectionPolicy(password, password, doc.getCurrentAccessPermission()));
+        // @TODO: find out. :D
 
-        doc.protect(new StandardProtectionPolicy(password, password, doc.getCurrentAccessPermission()));
+        final PDDocumentCatalog docCatalog = doc.getDocumentCatalog();
 
-        PDDocumentCatalog docCatalog = doc.getDocumentCatalog();
-
+        sanitizeNamed(session, doc, docCatalog.getNames());
         sanitizeOpenAction(session, docCatalog);
         sanitizeDocumentActions(session, docCatalog.getActions());
         sanitizePageActions(session, docCatalog.getPages());
@@ -93,17 +89,122 @@ public class PdfBleach implements Bleach {
         sanitizeObjects(session, doc.getDocument().getObjects());
 
         doc.save(outputStream);
+        doc.close();
+    }
+
+    private void sanitizeNamed(BleachSession session, PDDocument doc, PDDocumentNameDictionary names) {
+        sanitizeRecursiveNameTree(names.getEmbeddedFiles(), fileSpec -> sanitizeEmbeddedFile(session, doc, fileSpec));
+
+        sanitizeRecursiveNameTree(names.getJavaScript(), action -> sanitizeJavascript(session, doc, action));
+        names.setJavascript(null);
+    }
+
+    private void sanitizeJavascript(BleachSession session, PDDocument doc, PDActionJavaScript action) {
+        LOGGER.debug("Found JS Action: {}", action.getAction());
+        // @TODO: find samples and check what actions could be taken. For now, we remove the named tree.
+    }
+
+    private <T extends COSObjectable> void sanitizeRecursiveNameTree(PDNameTreeNode<T> efTree, Consumer<T> callback) {
+        if (efTree == null)
+            return;
+
+        Map<String, T> _names;
+        try {
+            _names = efTree.getNames();
+        } catch (IOException e) {
+            LOGGER.error("Error in sanitizeRecursiveNameTree", e);
+            return;
+        }
+
+        if (_names != null) {
+            _names.values().forEach(callback);
+        }
+        if (efTree.getKids() == null)
+            return;
+        for (PDNameTreeNode<T> node : efTree.getKids()) {
+            sanitizeRecursiveNameTree(node, callback);
+        }
+    }
+
+    private void sanitizeEmbeddedFile(BleachSession session, PDDocument doc, PDComplexFileSpecification fileSpec) {
+        LOGGER.trace("Embedded file found: {}", fileSpec.getFilename());
+
+        Function<PDEmbeddedFile, PDEmbeddedFile> sanitize = file -> sanitizeEmbeddedFile(session, doc, file);
+
+        fileSpec.setEmbeddedFile(sanitize.apply(fileSpec.getEmbeddedFile()));
+        fileSpec.setEmbeddedFileDos(sanitize.apply(fileSpec.getEmbeddedFileDos()));
+        fileSpec.setEmbeddedFileMac(sanitize.apply(fileSpec.getEmbeddedFileMac()));
+        fileSpec.setEmbeddedFileUnicode(sanitize.apply(fileSpec.getEmbeddedFileUnicode()));
+        fileSpec.setEmbeddedFileUnix(sanitize.apply(fileSpec.getEmbeddedFileUnix()));
+    }
+
+    private PDEmbeddedFile sanitizeEmbeddedFile(BleachSession session, PDDocument doc, PDEmbeddedFile file) {
+        if (file == null)
+            return null;
+
+        LOGGER.debug("Sanitizing file: Size: {}, Mime-Type: {}, ", file.getSize(), file.getSubtype());
+
+        ByteArrayInputStream is;
+        try {
+            is = new ByteArrayInputStream(file.toByteArray());
+        } catch (IOException e) {
+            LOGGER.error("Error during original's file read", e);
+            return null;
+        }
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+        try {
+            session.sanitize(is, os);
+        } catch (BleachException e) {
+            LOGGER.error("Error during the bleach process", e);
+            return null;
+        }
+
+        ByteArrayInputStream fakeFile = new ByteArrayInputStream(os.toByteArray());
+
+        PDEmbeddedFile ef;
+        try {
+            ef = new PDEmbeddedFile(doc, fakeFile);
+            ef.setCreationDate(file.getCreationDate());
+            ef.setModDate(file.getModDate());
+        } catch (IOException e) {
+            LOGGER.error("Error when creating the new sane file", e);
+            return null;
+        }
+
+        // We copy the properties of the real embedded file
+        ef.setSubtype(file.getSubtype());
+        ef.setSize(os.size());
+        ef.setMacCreator(file.getMacCreator());
+        ef.setMacResFork(file.getMacResFork());
+        ef.setMacSubtype(file.getMacSubtype());
+
+
+        // We remove the real file
+        file.setSize(0);
+        file.setFile(null);
+
+        try {
+            // And we empty it
+            file.createOutputStream().close();
+        } catch (IOException e) {
+            LOGGER.error("Error when trying to empty the original embedded file", e);
+            // Not severe, don't abort operations.
+        }
+        return ef;
     }
 
     private void rewind(RandomAccessRead source) throws IOException {
         source.rewind((int) source.getPosition());
     }
 
-    private String getPasswordFor(ScratchFile scratchFile, RandomAccessRead source) throws IOException, BleachException {
+    private PDDocument getDocument(ScratchFile scratchFile, RandomAccessRead source) throws IOException, BleachException {
+        PDDocument doc;
         for (String pwd : COMMON_PASSWORDS) {
-            if (testPassword(scratchFile, source, pwd)) {
+            doc = testPassword(scratchFile, source, pwd);
+            if (doc != null) {
                 LOGGER.debug("Password was guessed: '{}'", pwd);
-                return pwd; // If we get there, the PDF is protected using this password
+                return doc;
             }
         }
 
@@ -113,18 +214,17 @@ public class PdfBleach implements Bleach {
     }
 
     @SuppressFBWarnings(value = "EXS_EXCEPTION_SOFTENING_RETURN_FALSE", justification = "This method is an helper to check the password")
-    private boolean testPassword(ScratchFile inFile, RandomAccessRead source, String password) throws IOException {
+    private PDDocument testPassword(ScratchFile inFile, RandomAccessRead source, String password) throws IOException {
         PDFParser parser = new PDFParser(source, password, inFile);
         try {
             parser.parse();
+            return parser.getPDDocument();
         } catch (InvalidPasswordException e) {
             LOGGER.error("An exception occured while testing a password.", e);
-            return false;
+            return null;
         } finally {
             rewind(source);
         }
-
-        return true;
     }
 
     public void sanitizeObjects(BleachSession session, List<COSObject> objects) {
@@ -215,7 +315,7 @@ public class PdfBleach implements Bleach {
 
                 if ("S".equals(entry.getKey().getName())) {
                     if (entry.getValue() instanceof COSName) {
-                        if ("JavaScript".equals(((org.apache.pdfbox.cos.COSName) entry.getValue()).getName())) {
+                        if ("JavaScript".equals(((COSName) entry.getValue()).getName())) {
                             LOGGER.debug("Found and removed Javascript code");
                             it.remove();
                             recordJavascriptThreat(session, "?", "JS Code");
