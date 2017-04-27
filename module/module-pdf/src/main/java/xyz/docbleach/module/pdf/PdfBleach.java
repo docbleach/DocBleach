@@ -93,6 +93,9 @@ public class PdfBleach implements Bleach {
     }
 
     private void sanitizeNamed(BleachSession session, PDDocument doc, PDDocumentNameDictionary names) {
+        if (names == null)
+            return;
+        
         sanitizeRecursiveNameTree(names.getEmbeddedFiles(), fileSpec -> sanitizeEmbeddedFile(session, doc, fileSpec));
 
         sanitizeRecursiveNameTree(names.getJavaScript(), action -> sanitizeJavascript(session, doc, action));
