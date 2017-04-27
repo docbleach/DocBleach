@@ -30,6 +30,8 @@ public class Main {
     public static void main(String[] args) throws IOException, ParseException {
         // Set the security manager, preventing commands/network interactions.
         System.setSecurityManager(new UnsafeSecurityManager());
+        // Hide macOS' Java icon in Dock
+        System.setProperty("java.awt.headless", "true");
 
         Main main = new Main();
 
