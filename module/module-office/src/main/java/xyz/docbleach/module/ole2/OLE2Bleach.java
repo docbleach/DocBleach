@@ -28,6 +28,8 @@ import java.util.function.Predicate;
 public class OLE2Bleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(OLE2Bleach.class);
     private static final String MACRO_ENTRY = "Macros";
+    private static final String COMPOUND_OBJECT_ENTRY = "CompObj";
+    private static final String OBJECT_POOL_ENTRY = "ObjectPool";
     private static final String VBA_ENTRY = "VBA";
     private static final String NORMAL_TEMPLATE = "Normal.dotm";
 
@@ -61,6 +63,7 @@ public class OLE2Bleach implements Bleach {
             // Returns false if the entry should be removed
             Predicate<Entry> visitor = ((Predicate<Entry>) (e -> true))
                     .and(removeMacros(session))
+                    .and(removeObjects(session))
                     .and(removeTemplate(session));
 
             rootIn.getEntries().forEachRemaining(entry -> {
@@ -189,6 +192,40 @@ public class OLE2Bleach implements Bleach {
 
             Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
                     ThreatSeverity.EXTREME,
+                    entryName,
+                    infos.toString(),
+                    ThreatAction.REMOVE);
+            session.recordThreat(threat);
+
+            return false;
+        };
+    }
+
+
+    Predicate<Entry> removeObjects(BleachSession session) {
+        return entry -> {
+            String entryName = entry.getName();
+
+            boolean isObject = OBJECT_POOL_ENTRY.equalsIgnoreCase(entryName) ||
+                    COMPOUND_OBJECT_ENTRY.equalsIgnoreCase(entryName);
+
+            if (!isObject) {
+                return true;
+            }
+
+            LOGGER.info("Found Compound Objects, removing them.");
+            StringBuilder infos = new StringBuilder();
+            if (entry instanceof DirectoryEntry) {
+                Set<String> entryNames = ((DirectoryEntry) entry).getEntryNames();
+                LOGGER.trace("Macros' entries: {}", entryNames);
+                infos.append("Entries: ").append(entryNames);
+            } else if (entry instanceof DocumentEntry) {
+                int size = ((DocumentEntry) entry).getSize();
+                infos.append("Size: ").append(size);
+            }
+
+            Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
+                    ThreatSeverity.HIGH,
                     entryName,
                     infos.toString(),
                     ThreatAction.REMOVE);
