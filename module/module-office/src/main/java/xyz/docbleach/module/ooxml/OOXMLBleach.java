@@ -127,7 +127,7 @@ public class OOXMLBleach implements Bleach {
             pkg.revert();
         } catch (InvalidFormatException | UnsupportedFileFormatException e) {
             // We can't canitize this file, so we ignore it
-            LOGGER.error("Invalid format", e);
+            LOGGER.debug("Invalid format", e);
             try {
                 inputStream.reset();
                 StreamUtils.copy(inputStream, outputStream);
