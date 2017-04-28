@@ -112,7 +112,6 @@ public class ArchiveBleach implements Bleach {
         }
         newEntry.setComment(entry.getComment());
         newEntry.setExtra(entry.getExtra());
-        newEntry.setMethod(entry.getMethod());
 
         return newEntry;
     }
