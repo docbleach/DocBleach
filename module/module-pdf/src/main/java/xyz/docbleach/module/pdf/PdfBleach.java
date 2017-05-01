@@ -18,6 +18,8 @@ import org.apache.pdfbox.pdmodel.interactive.action.*;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.slf4j.Logger;
@@ -86,10 +88,28 @@ public class PdfBleach implements Bleach {
         sanitizeDocumentActions(session, docCatalog.getActions());
         sanitizePageActions(session, docCatalog.getPages());
         sanitizeAcroFormActions(session, docCatalog.getAcroForm());
+        sanitizeDocumentOutline(session, doc.getDocumentCatalog().getDocumentOutline());
+
         sanitizeObjects(session, doc.getDocument().getObjects());
 
         doc.save(outputStream);
         doc.close();
+    }
+
+    private void sanitizeDocumentOutline(BleachSession session, PDDocumentOutline documentOutline) {
+        if (documentOutline == null)
+            return;
+        if (!documentOutline.hasChildren())
+            return;
+        documentOutline.children().forEach(item -> sanitizeDocumentOutlineItem(session, item));
+    }
+
+    private void sanitizeDocumentOutlineItem(BleachSession session, PDOutlineItem item) {
+        if (item.getAction() == null)
+            return;
+        LOGGER.debug("Found&removed action on outline item (was {})", item.getAction());
+        item.setAction(null);
+        recordJavascriptThreat(session, "DocumentOutline Item Action", "Action");
     }
 
     private void sanitizeNamed(BleachSession session, PDDocument doc, PDDocumentNameDictionary names) {
