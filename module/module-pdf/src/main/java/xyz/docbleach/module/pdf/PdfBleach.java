@@ -267,6 +267,10 @@ public class PdfBleach implements Bleach {
         Iterator<PDField> fields = acroForm.getFieldIterator();
 
         fields.forEachRemaining(field -> {
+            // Sanitize annotations
+            field.getWidgets().forEach(annotation -> sanitizeAnnotation(session, annotation));
+
+            // Sanitize field actions
             PDFormFieldAdditionalActions fieldActions = field.getActions();
             if (fieldActions == null) {
                 return;
