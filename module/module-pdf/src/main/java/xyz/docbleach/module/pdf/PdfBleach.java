@@ -333,7 +333,7 @@ public class PdfBleach implements Bleach {
             Iterator<Map.Entry<COSName, COSBase>> it = dict.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<COSName, COSBase> entry = it.next();
-                if ("JS".equals(entry.getKey().getName())) {
+                if ("JS".equals(entry.getKey().getName()) || "JavaScript".equals(entry.getKey().getName())) {
                     it.remove();
                     LOGGER.debug("Found and removed Javascript code");
                     recordJavascriptThreat(session, "?", "JS Code");
