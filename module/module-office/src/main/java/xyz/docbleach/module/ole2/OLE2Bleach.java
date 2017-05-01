@@ -15,6 +15,7 @@ import xyz.docbleach.api.threat.ThreatType;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -82,9 +83,26 @@ public class OLE2Bleach implements Bleach {
         }
     }
 
-    private void copyNodesRecursively(Entry entry, DirectoryEntry destination) {
+    private void copyNodesRecursively(Entry entry, DirectoryEntry target) {
+        LOGGER.trace("copyNodesRecursively: {}, parent: {}", entry.getName(), entry.getParent());
         try {
-            EntryUtils.copyNodeRecursively(entry, destination);
+            if (!entry.isDirectoryEntry()) {
+                DocumentEntry dentry = (DocumentEntry) entry;
+                DocumentInputStream dstream = new DocumentInputStream(dentry);
+                target.createDocument(dentry.getName(), dstream);
+                dstream.close();
+                return;
+            }
+
+            DirectoryEntry dirEntry = (DirectoryEntry) entry;
+            DirectoryEntry newTarget = target.createDirectory(entry.getName());
+            newTarget.setStorageClsid(dirEntry.getStorageClsid());
+            Iterator entries = dirEntry.getEntries();
+
+            while (entries.hasNext()) {
+                entry = (Entry) entries.next();
+                copyNodesRecursively(entry, newTarget);
+            }
         } catch (IOException e) {
             LOGGER.error("An error occured while trying to recursively copy nodes", e);
         }
