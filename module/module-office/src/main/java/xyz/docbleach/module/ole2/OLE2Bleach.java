@@ -67,6 +67,8 @@ public class OLE2Bleach implements Bleach {
                     .and(removeObjects(session))
                     .and(removeTemplate(session));
 
+            LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
+
             rootIn.getEntries().forEachRemaining(entry -> {
                 if (!visitor.test(entry)) {
                     return;
@@ -130,6 +132,7 @@ public class OLE2Bleach implements Bleach {
         try (DocumentInputStream dis = new DocumentInputStream(dsiEntry)) {
             PropertySet ps = new PropertySet(dis);
             SummaryInformation dsi = new SummaryInformation(ps);
+
             sanitizeSummaryInformation(session, dsi);
         } catch (NoPropertySetStreamException | UnexpectedPropertySetTypeException | MarkUnsupportedException | IOException e) {
             LOGGER.error("An error occured while trying to sanitize the document entry", e);
