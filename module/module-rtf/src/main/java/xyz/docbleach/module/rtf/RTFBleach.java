@@ -14,6 +14,8 @@ import xyz.docbleach.api.util.StreamUtils;
 import java.io.*;
 import java.nio.charset.Charset;
 
+import static xyz.docbleach.api.threat.ThreatBuilder.threat;
+
 /**
  * RTF files are not that common nowadays, but it is a simple format and is a perfect bleach
  * example: short but complete <p> An RTF file looks like a bunch of <code>{\tag content}</code>
@@ -53,12 +55,14 @@ public class RTFBleach implements Bleach {
                 if (l.toLowerCase().contains("\\obj")) {
                     LOGGER.debug("OLE Object found and removed!");
 
-                    Threat threat = new Threat(ThreatType.BINARY_CONTENT,
-                            ThreatSeverity.HIGH,
-                            "?",
-                            "Embedded OLE Object",
-                            ThreatAction.REMOVE
-                    );
+                    Threat threat = threat()
+                            .type(ThreatType.BINARY_CONTENT)
+                            .severity(ThreatSeverity.HIGH)
+                            .action(ThreatAction.REMOVE)
+                            .location("?")
+                            .details("Embedded OLE Object")
+                            .build();
+
                     session.recordThreat(threat);
                 }
                 String sanitizedLine = sanitizeLine(l);

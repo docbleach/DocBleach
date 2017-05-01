@@ -40,6 +40,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static xyz.docbleach.api.threat.ThreatBuilder.threat;
+
 /**
  * PDF parsing is a bit tricky: everything may or may not be linked to additional actions, so we
  * need to treat each and every elements.
@@ -115,7 +117,7 @@ public class PdfBleach implements Bleach {
     private void sanitizeNamed(BleachSession session, PDDocument doc, PDDocumentNameDictionary names) {
         if (names == null)
             return;
-        
+
         sanitizeRecursiveNameTree(names.getEmbeddedFiles(), fileSpec -> sanitizeEmbeddedFile(session, doc, fileSpec));
 
         sanitizeRecursiveNameTree(names.getJavaScript(), action -> sanitizeJavascript(session, doc, action));
@@ -515,12 +517,14 @@ public class PdfBleach implements Bleach {
     }
 
     private void recordJavascriptThreat(BleachSession session, String location, String details) {
-        Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
-                ThreatSeverity.HIGH,
-                location,
-                details,
-                ThreatAction.REMOVE
-        );
+        Threat threat = threat()
+                .type(ThreatType.ACTIVE_CONTENT)
+                .severity(ThreatSeverity.HIGH)
+                .details(details)
+                .location(location)
+                .action(ThreatAction.REMOVE)
+                .build();
+
         session.recordThreat(threat);
     }
 }

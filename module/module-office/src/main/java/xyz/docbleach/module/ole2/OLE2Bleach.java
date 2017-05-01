@@ -19,6 +19,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import static xyz.docbleach.api.threat.ThreatBuilder.threat;
+
 
 /**
  * Sanitizes an OLE2 file (.doc, .xls, .ppt) by copying its elements into a new OLE2 container.
@@ -152,11 +154,15 @@ public class OLE2Bleach implements Bleach {
         LOGGER.trace("Removing the document's Comments (was '{}')", comments);
 
         dsi.removeComments();
-        Threat threat = new Threat(ThreatType.UNRECOGNIZED_CONTENT,
-                ThreatSeverity.LOW,
-                "Summary Information - Comment",
-                "Comment was: '" + comments + "'",
-                ThreatAction.REMOVE);
+
+        Threat threat = threat()
+                .type(ThreatType.UNRECOGNIZED_CONTENT)
+                .severity(ThreatSeverity.LOW)
+                .action(ThreatAction.REMOVE)
+                .location("Summary Information - Comment")
+                .details("Comment was: '" + comments + "'")
+                .build();
+
         session.recordThreat(threat);
     }
 
@@ -173,11 +179,13 @@ public class OLE2Bleach implements Bleach {
 
         ThreatSeverity severity = isExternalTemplate(template) ? ThreatSeverity.HIGH : ThreatSeverity.LOW;
 
-        Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
-                severity,
-                "Summary Information - Template",
-                "Template was: '" + template + "'",
-                ThreatAction.REMOVE);
+        Threat threat = threat()
+                .type(ThreatType.EXTERNAL_CONTENT)
+                .severity(severity)
+                .action(ThreatAction.REMOVE)
+                .location("Summary Information - Template")
+                .details("Template was: '" + template + "'")
+                .build();
 
         session.recordThreat(threat);
     }
@@ -211,11 +219,14 @@ public class OLE2Bleach implements Bleach {
                 infos.append("Size: ").append(size);
             }
 
-            Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
-                    ThreatSeverity.EXTREME,
-                    entryName,
-                    infos.toString(),
-                    ThreatAction.REMOVE);
+            Threat threat = threat()
+                    .type(ThreatType.ACTIVE_CONTENT)
+                    .severity(ThreatSeverity.EXTREME)
+                    .action(ThreatAction.REMOVE)
+                    .location(entryName)
+                    .details(infos.toString())
+                    .build();
+
             session.recordThreat(threat);
 
             return false;
@@ -245,11 +256,14 @@ public class OLE2Bleach implements Bleach {
                 infos.append("Size: ").append(size);
             }
 
-            Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
-                    ThreatSeverity.HIGH,
-                    entryName,
-                    infos.toString(),
-                    ThreatAction.REMOVE);
+            Threat threat = threat()
+                    .type(ThreatType.EXTERNAL_CONTENT)
+                    .severity(ThreatSeverity.HIGH)
+                    .action(ThreatAction.REMOVE)
+                    .location(entryName)
+                    .details(infos.toString())
+                    .build();
+
             session.recordThreat(threat);
 
             return false;

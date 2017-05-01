@@ -21,6 +21,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import static xyz.docbleach.api.threat.ThreatBuilder.threat;
+
 /**
  * Sanitizes Office 2007+ documents (OOXML), in place. This format has two interesting things for
  * us: a list of elements and a list of relationships. It is an Open Format, well documented and we
@@ -191,12 +193,14 @@ public class OOXMLBleach implements Bleach {
 
         LOGGER.debug("Content type of '{}' changed from '{}' to '{}'", part.getPartName(), oldContentType, newContentType);
 
-        Threat threat = new Threat(ThreatType.UNRECOGNIZED_CONTENT,
-                ThreatSeverity.LOW,
-                part.getPartName().getName(),
-                "Remapped content type: " + oldContentType,
-                ThreatAction.DISARM
-        );
+        Threat threat = threat()
+                .type(ThreatType.UNRECOGNIZED_CONTENT)
+                .severity(ThreatSeverity.LOW)
+                .action(ThreatAction.DISARM)
+                .location(part.getPartName().getName())
+                .details("Remapped content type: " + oldContentType)
+                .build();
+
         session.recordThreat(threat);
     }
 
@@ -223,12 +227,14 @@ public class OOXMLBleach implements Bleach {
         if (isBlacklistedRelationType(relationshipType)) {
             pkg.removeRelationship(relationship.getId());
 
-            Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
-                    ThreatSeverity.HIGH,
-                    relationship.getSource().getPartName().getName(),
-                    "Blacklisted relationship type: " + relationshipType,
-                    ThreatAction.REMOVE
-            );
+            Threat threat = threat()
+                    .type(ThreatType.ACTIVE_CONTENT)
+                    .severity(ThreatSeverity.HIGH)
+                    .action(ThreatAction.REMOVE)
+                    .location(relationship.getSource().getPartName().getName())
+                    .details("Blacklisted relationship type: " + relationshipType)
+                    .build();
+
             session.recordThreat(threat);
             return;
         }
@@ -250,12 +256,14 @@ public class OOXMLBleach implements Bleach {
                 LOGGER.debug(EXTERNAL_RELATION_FORMAT, sourceUri, targetUri, relationType);
             }
 
-            Threat threat = new Threat(ThreatType.EXTERNAL_CONTENT,
-                    severity,
-                    relationship.getSource().getPartName().getName(),
-                    "External relationship of type: " + relationshipType,
-                    ThreatAction.REMOVE
-            );
+            Threat threat = threat()
+                    .type(ThreatType.EXTERNAL_CONTENT)
+                    .severity(severity)
+                    .action(ThreatAction.REMOVE)
+                    .location(relationship.getSource().getPartName().getName())
+                    .details("External relationship of type: " + relationshipType)
+                    .build();
+
             session.recordThreat(threat);
         }
     }
@@ -292,14 +300,15 @@ public class OOXMLBleach implements Bleach {
             LOGGER.debug(SUSPICIOUS_OOXML_FORMAT, contentType, part.getPartName(), part.getSize());
             deletePart(pkg, part.getPartName());
 
-            Threat threat = new Threat(ThreatType.ACTIVE_CONTENT,
-                    ThreatSeverity.HIGH,
-                    part.getPartName().getName(),
-                    "Forbidden content type: " + type,
-                    ThreatAction.REMOVE
-            );
-            session.recordThreat(threat);
+            Threat threat = threat()
+                    .type(ThreatType.ACTIVE_CONTENT)
+                    .severity(ThreatSeverity.HIGH)
+                    .action(ThreatAction.REMOVE)
+                    .location(part.getPartName().getName())
+                    .details("Forbidden content type: " + type)
+                    .build();
 
+            session.recordThreat(threat);
         }
     }
 
