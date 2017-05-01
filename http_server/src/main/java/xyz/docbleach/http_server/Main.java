@@ -102,7 +102,6 @@ public class Main extends AbstractVerticle {
         response.putHeader("Content-Length", "" + saneFile.length());
 
         response.sendFile(saneFile.getAbsolutePath());
-
     }
 
     private void removeFiles(File... files) {
@@ -127,6 +126,7 @@ public class Main extends AbstractVerticle {
             fstream.deleteOnExit();
             try (FileOutputStream os = new FileOutputStream(fstream)) {
                 session.sanitize(is, os);
+                LOGGER.info("Sanitation for '{}': {} potential threats removed", uploadedFileName, session.threatCount());
             }
             return fstream;
         }
