@@ -12,9 +12,7 @@ import xyz.docbleach.api.threat.ThreatAction;
 import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -57,29 +55,7 @@ public class OLE2Bleach implements Bleach {
                 NPOIFSFileSystem fsIn = new NPOIFSFileSystem(inputStream);
                 NPOIFSFileSystem fs = new NPOIFSFileSystem()
         ) {
-            DirectoryEntry rootIn = fsIn.getRoot();
-            DirectoryEntry root = fs.getRoot();
-
-            LOGGER.debug("Entries before: {}", rootIn.getEntryNames());
-            // Save the changes to a new file
-
-            // Returns false if the entry should be removed
-            Predicate<Entry> visitor = ((Predicate<Entry>) (e -> true))
-                    .and(removeMacros(session))
-                    .and(removeObjects(session))
-                    .and(removeTemplate(session));
-
-            LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
-
-            rootIn.getEntries().forEachRemaining(entry -> {
-                if (!visitor.test(entry)) {
-                    return;
-                }
-                copyNodesRecursively(entry, root);
-            });
-
-            LOGGER.debug("Entries after: {}", root.getEntryNames());
-            // Save the changes to a new file
+            sanitize(session, fsIn, fs);
 
             fs.writeFilesystem(outputStream);
         } catch (IOException | IndexOutOfBoundsException e) {
@@ -87,7 +63,36 @@ public class OLE2Bleach implements Bleach {
         }
     }
 
-    private void copyNodesRecursively(Entry entry, DirectoryEntry target) {
+    protected void sanitize(BleachSession session, NPOIFSFileSystem fsIn, NPOIFSFileSystem fs) {
+        DirectoryEntry rootIn = fsIn.getRoot();
+        DirectoryEntry root = fs.getRoot();
+        sanitize(session, rootIn, root);
+    }
+
+    protected void sanitize(BleachSession session, DirectoryEntry rootIn, DirectoryEntry root) {
+        LOGGER.debug("Entries before: {}", rootIn.getEntryNames());
+        // Save the changes to a new file
+
+        // Returns false if the entry should be removed
+        Predicate<Entry> visitor = ((Predicate<Entry>) (e -> true))
+                .and(removeMacros(session))
+                .and(removeObjects(session))
+                .and(removeTemplate(session));
+
+        LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
+
+        rootIn.getEntries().forEachRemaining(entry -> {
+            if (!visitor.test(entry)) {
+                return;
+            }
+            copyNodesRecursively(entry, root);
+        });
+
+        LOGGER.debug("Entries after: {}", root.getEntryNames());
+        // Save the changes to a new file
+    }
+
+    protected void copyNodesRecursively(Entry entry, DirectoryEntry target) {
         LOGGER.trace("copyNodesRecursively: {}, parent: {}", entry.getName(), entry.getParent());
         try {
             if (!entry.isDirectoryEntry()) {
@@ -112,9 +117,10 @@ public class OLE2Bleach implements Bleach {
         }
     }
 
-    Predicate<Entry> removeTemplate(BleachSession session) {
+    protected Predicate<Entry> removeTemplate(BleachSession session) {
         return entry -> {
             String entryName = entry.getName();
+
             if (!SummaryInformation.DEFAULT_STREAM_NAME.equals(entryName)) {
                 return true;
             }
@@ -130,9 +136,11 @@ public class OLE2Bleach implements Bleach {
         };
     }
 
-    void sanitizeDocumentEntry(BleachSession session, DocumentEntry dsiEntry) {
+    protected void sanitizeDocumentEntry(BleachSession session, DocumentEntry dsiEntry) {
         try (DocumentInputStream dis = new DocumentInputStream(dsiEntry)) {
             PropertySet ps = new PropertySet(dis);
+            LOGGER.debug("PropertySet sections: {}", ps.getSections());
+            LOGGER.debug("PropertySet first properties: {}", (Object) ps.getFirstSection().getProperties());
             SummaryInformation dsi = new SummaryInformation(ps);
 
             sanitizeSummaryInformation(session, dsi);
@@ -141,12 +149,12 @@ public class OLE2Bleach implements Bleach {
         }
     }
 
-    private void sanitizeSummaryInformation(BleachSession session, SummaryInformation dsi) {
+    protected void sanitizeSummaryInformation(BleachSession session, SummaryInformation dsi) {
         sanitizeTemplate(session, dsi);
         sanitizeComments(session, dsi);
     }
 
-    private void sanitizeComments(BleachSession session, SummaryInformation dsi) {
+    protected void sanitizeComments(BleachSession session, SummaryInformation dsi) {
         String comments = dsi.getComments();
         if (comments == null || comments.isEmpty())
             return;
@@ -166,7 +174,7 @@ public class OLE2Bleach implements Bleach {
         session.recordThreat(threat);
     }
 
-    private void sanitizeTemplate(BleachSession session, SummaryInformation dsi) {
+    protected void sanitizeTemplate(BleachSession session, SummaryInformation dsi) {
         String template = dsi.getTemplate();
         if (NORMAL_TEMPLATE.equals(template))
             return;
@@ -190,13 +198,13 @@ public class OLE2Bleach implements Bleach {
         session.recordThreat(threat);
     }
 
-    boolean isExternalTemplate(String template) {
+    protected boolean isExternalTemplate(String template) {
         return template.startsWith("http://") ||
                 template.startsWith("https://") ||
                 template.startsWith("ftp://");
     }
 
-    Predicate<Entry> removeMacros(BleachSession session) {
+    protected Predicate<Entry> removeMacros(BleachSession session) {
         return entry -> {
             String entryName = entry.getName();
 
@@ -234,7 +242,7 @@ public class OLE2Bleach implements Bleach {
     }
 
 
-    Predicate<Entry> removeObjects(BleachSession session) {
+    protected Predicate<Entry> removeObjects(BleachSession session) {
         return entry -> {
             String entryName = entry.getName();
 
