@@ -1,7 +1,12 @@
 package xyz.docbleach.module.ole2;
 
 import org.apache.poi.hpsf.*;
+import org.apache.poi.hssf.model.InternalWorkbook;
+import org.apache.poi.hssf.record.Record;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.poifs.filesystem.*;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
@@ -13,6 +18,8 @@ import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
 
 import java.io.*;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -57,10 +64,36 @@ public class OLE2Bleach implements Bleach {
         ) {
             sanitize(session, fsIn, fs);
 
-            fs.writeFilesystem(outputStream);
+            if (fs.getRoot().getStorageClsid().equals(ClassID.EXCEL97)) {
+                cleanupAndSaveExcel97(fs, outputStream);
+            } else {
+                fs.writeFilesystem(outputStream);
+            }
         } catch (IOException | IndexOutOfBoundsException e) {
             throw new BleachException(e);
         }
+    }
+
+    private void cleanupAndSaveExcel97(NPOIFSFileSystem fs, OutputStream outputStream) throws IOException {
+        Workbook wb = WorkbookFactory.create(fs);
+        if (wb instanceof HSSFWorkbook) {
+            HSSFWorkbook hwb = (HSSFWorkbook) wb;
+            InternalWorkbook internal = hwb.getInternalWorkbook();
+            if (internal != null) {
+                LOGGER.trace("# of Records: {}", internal.getNumRecords());
+                Collection<Record> records = new HashSet<>(internal.getRecords());
+                records.forEach(record -> {
+                    if (record.getSid() == 0xD3) { // ObProj's SID
+                        internal.getRecords().remove(record);
+
+                        LOGGER.debug("Found and removed ObProj record: {}", record);
+                    }
+                });
+                LOGGER.trace("# of Records: {}", internal.getNumRecords());
+            }
+        }
+
+        wb.write(outputStream);
     }
 
     protected void sanitize(BleachSession session, NPOIFSFileSystem fsIn, NPOIFSFileSystem fs) {
