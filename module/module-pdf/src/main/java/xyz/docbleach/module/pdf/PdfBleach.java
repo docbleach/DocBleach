@@ -14,6 +14,7 @@ import org.apache.pdfbox.pdmodel.common.PDNameTreeNode;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDComplexFileSpecification;
 import org.apache.pdfbox.pdmodel.common.filespecification.PDEmbeddedFile;
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException;
+import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
 import org.apache.pdfbox.pdmodel.interactive.action.*;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
@@ -77,11 +78,6 @@ public class PdfBleach implements Bleach {
 
     private void sanitize(ScratchFile scratchFile, RandomAccessRead source, OutputStream outputStream, BleachSession session) throws IOException, BleachException {
         final PDDocument doc = getDocument(scratchFile, source);
-
-        // Can't remember why I used this, but this method doesn't know the passord anymore
-        // So this is just impossible to achieve.
-        // doc.protect(new StandardProtectionPolicy(password, password, doc.getCurrentAccessPermission()));
-        // @TODO: find out. :D
 
         final PDDocumentCatalog docCatalog = doc.getDocumentCatalog();
 
@@ -229,6 +225,7 @@ public class PdfBleach implements Bleach {
             doc = testPassword(scratchFile, source, pwd);
             if (doc != null) {
                 LOGGER.debug("Password was guessed: '{}'", pwd);
+                doc.protect(new StandardProtectionPolicy(pwd, pwd, doc.getCurrentAccessPermission()));
                 return doc;
             }
         }
