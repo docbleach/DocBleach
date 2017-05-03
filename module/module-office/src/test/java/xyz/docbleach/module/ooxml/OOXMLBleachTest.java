@@ -1,12 +1,10 @@
 package xyz.docbleach.module.ooxml;
 
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.openxml4j.exceptions.NotOfficeXmlFileException;
 import org.apache.poi.openxml4j.opc.internal.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import xyz.docbleach.api.BleachTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -15,9 +13,10 @@ import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class OOXMLBleachTest extends BleachTestBase {
+class OOXMLBleachTest {
     // Source: https://msdn.microsoft.com/fr-fr/library/aa338205(v=office.12).aspx
     private static final List<String> DYNAMIC_TYPES = Arrays.asList(
             "application/vnd.ms.powerpoint.template.macroEnabled.12",

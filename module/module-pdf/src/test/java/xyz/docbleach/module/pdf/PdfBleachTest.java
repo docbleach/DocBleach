@@ -8,7 +8,6 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import xyz.docbleach.api.BleachSession;
-import xyz.docbleach.api.BleachTestBase;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -17,8 +16,9 @@ import java.nio.charset.Charset;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static xyz.docbleach.api.BleachTestBase.assertThreatsFound;
 
-class PdfBleachTest extends BleachTestBase {
+class PdfBleachTest {
     private PdfBleach instance;
     private BleachSession session;
 

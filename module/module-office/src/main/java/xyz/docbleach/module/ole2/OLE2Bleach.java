@@ -1,30 +1,15 @@
 package xyz.docbleach.module.ole2;
 
-import org.apache.poi.hpsf.*;
-import org.apache.poi.hssf.model.InternalWorkbook;
-import org.apache.poi.hssf.record.Record;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hpsf.ClassID;
 import org.apache.poi.poifs.filesystem.*;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
 import xyz.docbleach.api.bleach.Bleach;
 import xyz.docbleach.api.exception.BleachException;
-import xyz.docbleach.api.threat.Threat;
-import xyz.docbleach.api.threat.ThreatAction;
-import xyz.docbleach.api.threat.ThreatSeverity;
-import xyz.docbleach.api.threat.ThreatType;
 
 import java.io.*;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
 import java.util.function.Predicate;
-
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
 
 
 /**
@@ -35,11 +20,6 @@ import static xyz.docbleach.api.threat.ThreatBuilder.threat;
  */
 public class OLE2Bleach implements Bleach {
     private static final Logger LOGGER = LoggerFactory.getLogger(OLE2Bleach.class);
-    private static final String MACRO_ENTRY = "Macros";
-    private static final String COMPOUND_OBJECT_ENTRY = "\u0001CompObj";
-    private static final String OBJECT_POOL_ENTRY = "ObjectPool";
-    private static final String VBA_ENTRY = "VBA";
-    private static final String NORMAL_TEMPLATE = "Normal.dotm";
 
     @Override
     public boolean handlesMagic(InputStream stream) {
@@ -64,8 +44,8 @@ public class OLE2Bleach implements Bleach {
         ) {
             sanitize(session, fsIn, fs);
 
-            if (fs.getRoot().getStorageClsid().equals(ClassID.EXCEL97)) {
-                cleanupAndSaveExcel97(fs, outputStream);
+            if (ClassID.EXCEL97.equals(fs.getRoot().getStorageClsid())) {
+                ExcelRecordCleaner.cleanupAndSaveExcel97(fs, outputStream);
             } else {
                 fs.writeFilesystem(outputStream);
             }
@@ -74,43 +54,22 @@ public class OLE2Bleach implements Bleach {
         }
     }
 
-    private void cleanupAndSaveExcel97(NPOIFSFileSystem fs, OutputStream outputStream) throws IOException {
-        Workbook wb = WorkbookFactory.create(fs);
-        if (wb instanceof HSSFWorkbook) {
-            HSSFWorkbook hwb = (HSSFWorkbook) wb;
-            InternalWorkbook internal = hwb.getInternalWorkbook();
-            if (internal != null) {
-                LOGGER.trace("# of Records: {}", internal.getNumRecords());
-                Collection<Record> records = new HashSet<>(internal.getRecords());
-                records.forEach(record -> {
-                    if (record.getSid() == 0xD3) { // ObProj's SID
-                        internal.getRecords().remove(record);
-
-                        LOGGER.debug("Found and removed ObProj record: {}", record);
-                    }
-                });
-                LOGGER.trace("# of Records: {}", internal.getNumRecords());
-            }
-        }
-
-        wb.write(outputStream);
-    }
-
     protected void sanitize(BleachSession session, NPOIFSFileSystem fsIn, NPOIFSFileSystem fs) {
         DirectoryEntry rootIn = fsIn.getRoot();
-        DirectoryEntry root = fs.getRoot();
-        sanitize(session, rootIn, root);
+        DirectoryEntry rootOut = fs.getRoot();
+
+        sanitize(session, rootIn, rootOut);
     }
 
-    protected void sanitize(BleachSession session, DirectoryEntry rootIn, DirectoryEntry root) {
+    protected void sanitize(BleachSession session, DirectoryEntry rootIn, DirectoryEntry rootOut) {
         LOGGER.debug("Entries before: {}", rootIn.getEntryNames());
         // Save the changes to a new file
 
         // Returns false if the entry should be removed
         Predicate<Entry> visitor = ((Predicate<Entry>) (e -> true))
-                .and(removeMacros(session))
-                .and(removeObjects(session))
-                .and(removeTemplate(session));
+                .and(new MacroRemover(session))
+                .and(new ObjectRemover(session))
+                .and(new SummaryInformationSanitiser(session));
 
         LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
 
@@ -118,10 +77,10 @@ public class OLE2Bleach implements Bleach {
             if (!visitor.test(entry)) {
                 return;
             }
-            copyNodesRecursively(session, entry, root);
+            copyNodesRecursively(session, entry, rootOut);
         });
 
-        LOGGER.debug("Entries after: {}", root.getEntryNames());
+        LOGGER.debug("Entries after: {}", rootOut.getEntryNames());
         // Save the changes to a new file
     }
 
@@ -150,175 +109,10 @@ public class OLE2Bleach implements Bleach {
             DirectoryEntry dirEntry = (DirectoryEntry) entry;
             DirectoryEntry newTarget = target.createDirectory(entry.getName());
             newTarget.setStorageClsid(dirEntry.getStorageClsid());
-            Iterator entries = dirEntry.getEntries();
 
-            while (entries.hasNext()) {
-                entry = (Entry) entries.next();
-                copyNodesRecursively(session, entry, newTarget);
-            }
+            sanitize(session, dirEntry, newTarget);
         } catch (IOException e) {
             LOGGER.error("An error occured while trying to recursively copy nodes", e);
         }
-    }
-
-    protected Predicate<Entry> removeTemplate(BleachSession session) {
-        return entry -> {
-            String entryName = entry.getName();
-
-            if (!SummaryInformation.DEFAULT_STREAM_NAME.equals(entryName)) {
-                return true;
-            }
-
-            if (!(entry instanceof DocumentEntry)) {
-                return true;
-            }
-
-            DocumentEntry dsiEntry = (DocumentEntry) entry;
-            sanitizeDocumentEntry(session, dsiEntry);
-
-            return true;
-        };
-    }
-
-    protected void sanitizeDocumentEntry(BleachSession session, DocumentEntry dsiEntry) {
-        try (DocumentInputStream dis = new DocumentInputStream(dsiEntry)) {
-            PropertySet ps = new PropertySet(dis);
-            LOGGER.debug("PropertySet sections: {}", ps.getSections());
-            LOGGER.debug("PropertySet first properties: {}", (Object) ps.getFirstSection().getProperties());
-            SummaryInformation dsi = new SummaryInformation(ps);
-
-            sanitizeSummaryInformation(session, dsi);
-        } catch (NoPropertySetStreamException | UnexpectedPropertySetTypeException | MarkUnsupportedException | IOException e) {
-            LOGGER.error("An error occured while trying to sanitize the document entry", e);
-        }
-    }
-
-    protected void sanitizeSummaryInformation(BleachSession session, SummaryInformation dsi) {
-        sanitizeTemplate(session, dsi);
-        sanitizeComments(session, dsi);
-    }
-
-    protected void sanitizeComments(BleachSession session, SummaryInformation dsi) {
-        String comments = dsi.getComments();
-        if (comments == null || comments.isEmpty())
-            return;
-
-        LOGGER.trace("Removing the document's Comments (was '{}')", comments);
-
-        dsi.removeComments();
-
-        Threat threat = threat()
-                .type(ThreatType.UNRECOGNIZED_CONTENT)
-                .severity(ThreatSeverity.LOW)
-                .action(ThreatAction.REMOVE)
-                .location("Summary Information - Comment")
-                .details("Comment was: '" + comments + "'")
-                .build();
-
-        session.recordThreat(threat);
-    }
-
-    protected void sanitizeTemplate(BleachSession session, SummaryInformation dsi) {
-        String template = dsi.getTemplate();
-        if (NORMAL_TEMPLATE.equals(template))
-            return;
-
-        if (template == null)
-            return;
-
-        LOGGER.trace("Removing the document's template (was '{}')", template);
-        dsi.removeTemplate();
-
-        ThreatSeverity severity = isExternalTemplate(template) ? ThreatSeverity.HIGH : ThreatSeverity.LOW;
-
-        Threat threat = threat()
-                .type(ThreatType.EXTERNAL_CONTENT)
-                .severity(severity)
-                .action(ThreatAction.REMOVE)
-                .location("Summary Information - Template")
-                .details("Template was: '" + template + "'")
-                .build();
-
-        session.recordThreat(threat);
-    }
-
-    protected boolean isExternalTemplate(String template) {
-        return template.startsWith("http://") ||
-                template.startsWith("https://") ||
-                template.startsWith("ftp://");
-    }
-
-    protected Predicate<Entry> removeMacros(BleachSession session) {
-        return entry -> {
-            String entryName = entry.getName();
-
-            boolean isMacros = MACRO_ENTRY.equalsIgnoreCase(entryName) ||
-                    entryName.contains(VBA_ENTRY);
-
-            // Matches _VBA_PROJECT_CUR, VBA, ... :)
-            if (!isMacros) {
-                return true;
-            }
-
-            LOGGER.info("Found Macros, removing them.");
-            StringBuilder infos = new StringBuilder();
-            if (entry instanceof DirectoryEntry) {
-                Set<String> entryNames = ((DirectoryEntry) entry).getEntryNames();
-                LOGGER.trace("Macros' entries: {}", entryNames);
-                infos.append("Entries: ").append(entryNames);
-            } else if (entry instanceof DocumentEntry) {
-                int size = ((DocumentEntry) entry).getSize();
-                infos.append("Size: ").append(size);
-            }
-
-            Threat threat = threat()
-                    .type(ThreatType.ACTIVE_CONTENT)
-                    .severity(ThreatSeverity.EXTREME)
-                    .action(ThreatAction.REMOVE)
-                    .location(entryName)
-                    .details(infos.toString())
-                    .build();
-
-            session.recordThreat(threat);
-
-            return false;
-        };
-    }
-
-
-    protected Predicate<Entry> removeObjects(BleachSession session) {
-        return entry -> {
-            String entryName = entry.getName();
-
-            boolean isObject = OBJECT_POOL_ENTRY.equalsIgnoreCase(entryName) ||
-                    COMPOUND_OBJECT_ENTRY.equalsIgnoreCase(entryName);
-
-            if (!isObject) {
-                return true;
-            }
-
-            LOGGER.info("Found Compound Objects, removing them.");
-            StringBuilder infos = new StringBuilder();
-            if (entry instanceof DirectoryEntry) {
-                Set<String> entryNames = ((DirectoryEntry) entry).getEntryNames();
-                LOGGER.trace("Compound Objects' entries: {}", entryNames);
-                infos.append("Entries: ").append(entryNames);
-            } else if (entry instanceof DocumentEntry) {
-                int size = ((DocumentEntry) entry).getSize();
-                infos.append("Size: ").append(size);
-            }
-
-            Threat threat = threat()
-                    .type(ThreatType.EXTERNAL_CONTENT)
-                    .severity(ThreatSeverity.HIGH)
-                    .action(ThreatAction.REMOVE)
-                    .location(entryName)
-                    .details(infos.toString())
-                    .build();
-
-            session.recordThreat(threat);
-
-            return false;
-        };
     }
 }

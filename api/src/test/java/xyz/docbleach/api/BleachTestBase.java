@@ -7,7 +7,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 public abstract class BleachTestBase {
-    protected void assertThreatsFound(BleachSession session, int n) {
+    public static void assertThreatsFound(BleachSession session, int n) {
         verify(session, times(n)).recordThreat(any(Threat.class));
     }
 }
