@@ -85,20 +85,31 @@ public class OLE2Bleach implements Bleach {
             if (!visitor.test(entry)) {
                 return;
             }
-            copyNodesRecursively(entry, root);
+            copyNodesRecursively(session, entry, root);
         });
 
         LOGGER.debug("Entries after: {}", root.getEntryNames());
         // Save the changes to a new file
     }
 
-    protected void copyNodesRecursively(Entry entry, DirectoryEntry target) {
+    protected void copyNodesRecursively(BleachSession session, Entry entry, DirectoryEntry target) {
         LOGGER.trace("copyNodesRecursively: {}, parent: {}", entry.getName(), entry.getParent());
         try {
             if (!entry.isDirectoryEntry()) {
                 DocumentEntry dentry = (DocumentEntry) entry;
                 DocumentInputStream dstream = new DocumentInputStream(dentry);
-                target.createDocument(dentry.getName(), dstream);
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+                try {
+                    session.sanitize(dstream, os);
+                } catch (BleachException e) {
+                    LOGGER.error("An error occured", e);
+                    return;
+                }
+
+                ByteArrayInputStream bais = new ByteArrayInputStream(os.toByteArray());
+
+                target.createDocument(dentry.getName(), bais);
                 dstream.close();
                 return;
             }
@@ -110,7 +121,7 @@ public class OLE2Bleach implements Bleach {
 
             while (entries.hasNext()) {
                 entry = (Entry) entries.next();
-                copyNodesRecursively(entry, newTarget);
+                copyNodesRecursively(session, entry, newTarget);
             }
         } catch (IOException e) {
             LOGGER.error("An error occured while trying to recursively copy nodes", e);
