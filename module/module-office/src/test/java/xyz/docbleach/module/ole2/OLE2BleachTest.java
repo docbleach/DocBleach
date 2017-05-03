@@ -1,5 +1,6 @@
 package xyz.docbleach.module.ole2;
 
+import org.apache.poi.hpsf.SummaryInformation;
 import org.apache.poi.poifs.filesystem.DocumentEntry;
 import org.apache.poi.poifs.filesystem.Entry;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,6 +21,21 @@ class OLE2BleachTest extends BleachTestBase {
     private static final String SUMMARY_INFORMATION_ENTRY_NAME = "\005SummaryInformation";
     private OLE2Bleach instance;
     private BleachSession session;
+
+    @Test
+    void sanitizeComments() {
+        SummaryInformation si = new SummaryInformation();
+
+        // When no comment is set, no error/threat is thrown
+        instance.sanitizeComments(session, si);
+        assertThreatsFound(session, 0);
+
+        // When a comment is set, it should be removed
+        si.setComments("Hello!");
+        instance.sanitizeComments(session, si);
+        assertNull(si.getComments());
+        assertThreatsFound(session, 1);
+    }
 
     @BeforeEach
     void setUp() {

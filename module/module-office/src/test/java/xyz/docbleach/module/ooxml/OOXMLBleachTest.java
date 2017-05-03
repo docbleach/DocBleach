@@ -138,15 +138,4 @@ class OOXMLBleachTest extends BleachTestBase {
         InputStream invalidInputStream3 = new ByteArrayInputStream("Anything".getBytes(cs));
         assertFalse(instance.handlesMagic(invalidInputStream3));
     }
-
-    @Test
-    @Disabled
-    void ignoresZipFile() throws IOException {
-        // Not tested anymore, as opening the file as an archive means reading
-        // it as a whole, consuming a bunch of resources.
-        Charset cs = Charset.defaultCharset();
-
-        final InputStream invalidInputStream = new ByteArrayInputStream("PK\u0003\u0004".getBytes(cs));
-        assertThrows(NotOfficeXmlFileException.class, () -> instance.handlesMagic(invalidInputStream));
-    }
 }
