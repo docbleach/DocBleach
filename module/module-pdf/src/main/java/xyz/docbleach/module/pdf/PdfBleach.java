@@ -67,17 +67,15 @@ public class PdfBleach implements Bleach {
 
     @Override
     public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session) throws BleachException {
-        try (ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING);
-             RandomAccessRead source = new RandomAccessBufferedFileInputStream(inputStream)
-        ) {
-            sanitize(scratchFile, source, outputStream, session);
+        try (RandomAccessRead source = new RandomAccessBufferedFileInputStream(inputStream)) {
+            sanitize(source, outputStream, session);
         } catch (IOException e) {
             throw new BleachException(e);
         }
     }
 
-    private void sanitize(ScratchFile scratchFile, RandomAccessRead source, OutputStream outputStream, BleachSession session) throws IOException, BleachException {
-        final PDDocument doc = getDocument(scratchFile, source);
+    private void sanitize(RandomAccessRead source, OutputStream outputStream, BleachSession session) throws IOException, BleachException {
+        final PDDocument doc = getDocument(source);
 
         final PDDocumentCatalog docCatalog = doc.getDocumentCatalog();
 
@@ -219,15 +217,17 @@ public class PdfBleach implements Bleach {
         source.rewind((int) source.getPosition());
     }
 
-    private PDDocument getDocument(ScratchFile scratchFile, RandomAccessRead source) throws IOException, BleachException {
+    private PDDocument getDocument(RandomAccessRead source) throws IOException, BleachException {
         PDDocument doc;
         for (String pwd : COMMON_PASSWORDS) {
+            ScratchFile scratchFile = new ScratchFile(MEMORY_USAGE_SETTING);
             doc = testPassword(scratchFile, source, pwd);
             if (doc != null) {
                 LOGGER.debug("Password was guessed: '{}'", pwd);
                 doc.protect(new StandardProtectionPolicy(pwd, pwd, doc.getCurrentAccessPermission()));
                 return doc;
             }
+            scratchFile.close();
         }
 
         // @TODO: fetch password from config?
@@ -242,7 +242,7 @@ public class PdfBleach implements Bleach {
             parser.parse();
             return parser.getPDDocument();
         } catch (InvalidPasswordException e) {
-            LOGGER.error("An exception occured while testing a password.", e);
+            LOGGER.error("The tested password is invalid");
             return null;
         } finally {
             rewind(source);
