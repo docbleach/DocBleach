@@ -42,6 +42,7 @@ public class OLE2Bleach implements Bleach {
                 NPOIFSFileSystem fsIn = new NPOIFSFileSystem(inputStream);
                 NPOIFSFileSystem fs = new NPOIFSFileSystem()
         ) {
+            // @TODO: Filter based on Storage Class ID - see issue #23
             sanitize(session, fsIn, fs);
 
             if (ClassID.EXCEL97.equals(fs.getRoot().getStorageClsid())) {
@@ -72,6 +73,7 @@ public class OLE2Bleach implements Bleach {
                 .and(new SummaryInformationSanitiser(session));
 
         LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
+        rootOut.setStorageClsid(rootIn.getStorageClsid());
 
         rootIn.getEntries().forEachRemaining(entry -> {
             if (!visitor.test(entry)) {

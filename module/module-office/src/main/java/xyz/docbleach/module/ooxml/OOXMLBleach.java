@@ -46,12 +46,6 @@ public class OOXMLBleach implements Bleach {
             Relations.VBA_PROJECT_SIGNATURE,
             Relations.WORD_VBA_DATA,
 
-            // OLE Objects
-            Relations.OPENXML_OLE_OBJECT,
-            Relations.OLE_OBJECT,
-            Relations.E1_OBJECT,
-            Relations.E2_OBJECT,
-
             // ActiveX Controls
             Relations.OPENXML_CONTROL,
             Relations.OPENXML_ACTIVEX_CONTROL,
@@ -68,10 +62,6 @@ public class OOXMLBleach implements Bleach {
 
             // Blacklisting Postscript to prevent 0days
             ContentTypes.POSTSCRIPT,
-
-            // OLE Objects
-            ContentTypes.OLE_OBJECT,
-            ContentTypes.PACKAGE,
 
             // ActiveX objects
             ContentTypes.ACTIVEX,
