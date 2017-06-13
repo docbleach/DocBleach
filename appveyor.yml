@@ -39,3 +39,5 @@ deploy:
     on: # store artifacts for tags only
       branch: master
       appveyor_repo_tag: true
+    auth_token:
+      secure: AEzo8H9iZT02bSRuLzDMKKCOVdWUg3HeWGMfNak2Uq+TLu2RE5PXC8Uyt9OztOYs
