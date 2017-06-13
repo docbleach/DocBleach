@@ -99,6 +99,31 @@
             </plugin>
 
             <plugin>
+                <groupId>com.excelsiorjet</groupId>
+                <artifactId>excelsior-jet-maven-plugin</artifactId>
+                <version>1.0.0</version>
+                <configuration>
+                    <mainClass>${mainClass}</mainClass>
+                    <globalOptimizer>true</globalOptimizer>
+                    <diskFootprintReduction>medium</diskFootprintReduction>
+                    <addWindowsVersionInfo>true</addWindowsVersionInfo>
+
+                    <ignoreProjectDependencies>true</ignoreProjectDependencies>
+                    <dependencies>
+                        <dependency>
+                            <groupId>xyz.docbleach</groupId>
+                            <protect>not-required</protect>
+                            <optimize>auto-detect</optimize>
+                            <pack>not-required</pack>
+                        </dependency>
+                    </dependencies>
+
+                    <packaging>native-bundle</packaging>
+                    <noDefaultPostInstallActions>true</noDefaultPostInstallActions>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <!-- Don't deploy this to maven repo, only APIs -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>

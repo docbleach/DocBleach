@@ -100,6 +100,12 @@ BUILD SUCCESS confirms that all the tests were run successfuly.
  * [:gem: Download latest version][release-page]
  * [:mag_right: Wiki][wiki]
 
+# Releases
+The releases are available as Windows executables that don't depend on Java, thanks
+to the Excelsior Jet technology.
+
+[![](https://i.imgur.com/vBE9rqk.png)](https://www.excelsiorjet.com/)
+
 ## License
 
 See [LICENSE][license].

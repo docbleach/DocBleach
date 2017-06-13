@@ -1,0 +1,41 @@
+version: '{build}'
+
+skip_non_tags: true
+skip_branch_with_pr: true
+
+branches:
+  only:
+    - master
+
+image: Visual Studio 2017
+
+environment:
+  JET_URL:
+    secure: Nu2vAId9CWd0r8aes2mxYZ1PR3IkVSFvPAf9MZ2tUeGDY759Ho79TECbQohmRTiMhoUvwrt8Q3PIq+Il+yCE1w==
+
+install:
+  - if not exist "jet-1130-pro-en-windows-x86.exe" appveyor DownloadFile "%JET_URL%"
+  - ps: .\jet-1130-pro-en-windows-x86.exe -batch -no-aftrun -dest C:\jet\
+  - cmd: SET JET_HOME=C:\jet\
+
+build_script:
+  - mvn clean install
+  - mvn jet:testrun jet:build -pl cli --batch-mode -DskipTest 
+
+cache:
+  - C:\Users\appveyor\.m2
+  - .\jet-1130-pro-en-windows-x86.exe
+
+artifacts:
+  - path: cli\target\jet\docbleach.exe
+    name: DocBleach_Setup.exe
+
+  - path: cli\target\jet\app\
+    name: DocBleach_Standalone
+    type: zip
+
+deploy:
+  - provider: GitHub
+    on: # store artifacts for tags only
+      branch: master
+      appveyor_repo_tag: true
