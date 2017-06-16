@@ -28,10 +28,10 @@ cache:
 
 artifacts:
   - path: cli\target\jet\docbleach.exe
-    name: DocBleach_Setup.exe
+    name: docbleach_win_setup.exe
 
   - path: cli\target\jet\app\
-    name: DocBleach_Standalone
+    name: docbleach_win_standalone
     type: zip
 
 deploy:
