@@ -33,3 +33,13 @@ artifacts:
   - path: cli\target\jet\app\
     name: DocBleach_Standalone
     type: zip
+
+deploy:
+  description: 'GitHub Artifacts'
+  provider: GitHub
+  auth_token:
+    secure: "JwcdUJ6TvdH3qzuLp+oV+YUEd6mqR42HXZiq4iL6YXfPQXqAwTmfcdFU7j9kQDl7"
+  artifact: "DocBleach_Standalone,DocBleach_Setup.exe"
+  on:
+    branch: master
+    appveyor_repo_tag: true
