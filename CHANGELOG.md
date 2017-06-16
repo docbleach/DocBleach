@@ -1,6 +1,30 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+## [0.0.8] - 2017-06-16
+
+**:sparkles: New features**
+- Add a sample HTTP Server service
+- Update Apache POI to 3.16
+- Compile to native Windows and Linux apps thanks to *Excelsior Jet*
+- *Office*: Properly remove Compound objects and remove the "has macros" flag on Excel files
+- *PDF*: Improve sanitation and password checking method
+- *API*: Add a ThreatBuilder
+- *API*: Let the API depend on SLF4J-api instead of an implementation
+- Improved tests
+
+**:bug: Bug fixes**
+- *Archive*: Don't copy the compression method
+- *Office*: Remove compound objects
+- *Office*: Don't log when file is invalid
+
+**:fire: Backward incompatible changes**
+- Modules are no more shaded by default
+
+[:link: Full list of changes](https://github.com/docbleach/DocBleach/compare/v0.0.7...v0.0.8-3)
+
+
+
 ## [0.0.7] - 2017-04-26
 
 ### :sparkles: New features
