@@ -117,6 +117,12 @@
                             <pack>not-required</pack>
                         </dependency>
                     </dependencies>
+                    <runtime>
+                        <locales>
+                            <locale>all</locale>
+                        </locales>
+                        <profile>full</profile>
+                    </runtime>
 
                     <packaging>native-bundle</packaging>
                     <noDefaultPostInstallActions>true</noDefaultPostInstallActions>
