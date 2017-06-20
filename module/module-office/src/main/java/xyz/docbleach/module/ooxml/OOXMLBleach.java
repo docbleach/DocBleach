@@ -185,6 +185,8 @@ public class OOXMLBleach implements Bleach {
         while (it.hasNext()) {
             part = it.next();
             sanitize(session, pkg, part);
+            
+            OOXMLTagHelper.removeExternalDataTag(session, part);
 
             if (!part.isRelationshipPart()) {
                 sanitize(session, part, part.getRelationships());
@@ -203,7 +205,8 @@ public class OOXMLBleach implements Bleach {
         }
     }
 
-    /**
+
+	/**
      * The dummy file tries to prevent Microsoft Office from crashing because they forgot a lot of "!= null"
      * while checking if a resource is valid.
      * @param pkg Document to put the file in
