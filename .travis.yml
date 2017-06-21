@@ -30,6 +30,7 @@ cache:
 
 script:
   - mvn org.jacoco:jacoco-maven-plugin:prepare-agent package com.srcclr:srcclr-maven-plugin:scan
+  - [ -v "$SRCCLR_API_TOKEN" ] && mvn com.srcclr:srcclr-maven-plugin:scan
   - ./scripts/jet-build.sh
 
 before_deploy:
