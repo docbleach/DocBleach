@@ -1,6 +1,5 @@
 package xyz.docbleach.module.ooxml;
 
-@SuppressWarnings("ALL")
 public final class ContentTypes {
     // Main Parts (PowerPoint)
     public static final String MAIN_PPTX = "application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml";
@@ -35,6 +34,8 @@ public final class ContentTypes {
     public static final String ACTIVEX = "application/vnd.ms-office.activeX";
     public static final String OPENXML_ACTIVEX = "application/vnd.openxmlformats-officedocument.activeX";
     public static final String OPENXML_ACTIVEX_XML = "application/vnd.openxmlformats-officedocument.activeX+xml";
+    // Miscellaneous
+    public static final String TEXT_PLAIN = "text/plain";
 
     private ContentTypes() {
         throw new IllegalAccessError("Utility class");
