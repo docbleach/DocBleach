@@ -9,7 +9,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-import org.apache.poi.openxml4j.exceptions.InvalidOperationException;
 import org.apache.poi.openxml4j.opc.PackagePart;
 import org.apache.poi.openxml4j.opc.ZipPackagePart;
 import org.slf4j.Logger;
@@ -30,8 +29,8 @@ public class OOXMLTagHelper {
     private static final String XML_EXTENSION = "xml";
     private static final String XML_COMMENT_BLEACHED = "<!-- bleached -->";
     private static final String TAG_EXTERNAL_DATA = "externalData";
-    /** The regexp try to catch the whole tag, including namespace and attributes */
-    private static final String REGEXP_EXTERNAL_DATA = "<.." + TAG_EXTERNAL_DATA + ".*?/>";
+    /** The regexp tries to catch the whole tag, including namespace and attributes (<n:externalData ...>...</n:externalData>) */
+    private static final String REGEXP_EXTERNAL_DATA = "<.." + TAG_EXTERNAL_DATA + "(.*</.." + TAG_EXTERNAL_DATA + ">|.*?/>)";
     
     private OOXMLTagHelper() {
     }
