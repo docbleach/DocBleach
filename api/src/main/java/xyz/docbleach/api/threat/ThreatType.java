@@ -5,7 +5,7 @@ package xyz.docbleach.api.threat;
  */
 public enum ThreatType {
     /**
-     * Macros, JavaScript, ActiveX, AcroForms
+     * Macros, JavaScript, ActiveX, AcroForms, DDEAUTO
      */
     ACTIVE_CONTENT,
 

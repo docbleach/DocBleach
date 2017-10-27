@@ -30,8 +30,22 @@ public class OOXMLTagHelper {
     private static final String XML_EXTENSION = "xml";
     private static final String XML_COMMENT_BLEACHED = "<!-- bleached -->";
     private static final String TAG_EXTERNAL_DATA = "externalData";
+  
     /** The regexp try to catch the whole tag, including namespace and attributes */
     private static final String REGEXP_EXTERNAL_DATA = "<.." + TAG_EXTERNAL_DATA + ".*?/>";
+   
+    /** bleach DDE in external link and document */
+    private static final String DDEAUTO = "DDEAUTO";
+    
+    private static final String ATTRIBUTE_DDESERVICE_DATA = "ddeService";
+    private static final String REGEXP_DDESERVICE_DATA = ATTRIBUTE_DDESERVICE_DATA + "=\".*?\"";
+   
+    private static final String ATTRIBUTE_DDETOPIC_DATA = "ddeTopic";
+    private static final String REGEXP_DDETOPIC_DATA = ATTRIBUTE_DDETOPIC_DATA + "=\".*?\"";
+    
+    private static final String DDE_DATA_BLEACHED1 = "cmd";
+    private static final String DDE_DATA_BLEACHED2 = "exit";
+    
     
     private OOXMLTagHelper() {
     }
@@ -42,10 +56,11 @@ public class OOXMLTagHelper {
      * crashing. Actually, if you only remove the relation it crashes, that's why you have 
      * to remove the relation and the reference of the relation (via the externalData tag)
      * in the xml file.
+     * Also removes DDE.
      * @param session The current bleach session where the threat can be reported
      * @param part The package part to sanitize
      */
-    protected static void removeExternalDataTag(BleachSession session, PackagePart part) {
+    protected static void removeExternalDataTagAndDDE(BleachSession session, PackagePart part) {
     	// Only applicable if the file is an XML file (not a _refs or whatever)
     	// And is a ZipPackagePart, not a config file or whatever.
     	if (!XML_EXTENSION.equals(part.getPartName().getExtension()) || !(part instanceof ZipPackagePart)) {
@@ -58,14 +73,25 @@ public class OOXMLTagHelper {
     		return;
     	}
     	
+    	boolean external = content.indexOf(TAG_EXTERNAL_DATA) != -1;
+    	boolean ddeauto = content.indexOf(DDEAUTO) != -1 || content.indexOf(ATTRIBUTE_DDESERVICE_DATA) != -1;
+    	
     	// The evil tag has not been found, return
-    	if (content.indexOf(TAG_EXTERNAL_DATA) == -1) {
+    	if (!external && !ddeauto) {
     		return;
     	}
     	
+    	LOGGER.debug((external ? "externalData tag" : "DDE ") + " has been spotted {}", part);
+    	
     	// Replace the tag by a comment
-    	LOGGER.debug("externalData tag has been spotted {}", part);
     	content = content.replaceAll(REGEXP_EXTERNAL_DATA, XML_COMMENT_BLEACHED);
+    	
+    	// Replace DDEAUTO with nothing, DDE will not trigger
+    	content = content.replaceAll(DDEAUTO, "");
+    	
+    	// Replace ddeService & ddeTopic with cmd.exe exit
+    	content = content.replaceAll(REGEXP_DDESERVICE_DATA, ATTRIBUTE_DDESERVICE_DATA + "=\""+ DDE_DATA_BLEACHED1 +"\"");
+    	content = content.replaceAll(REGEXP_DDETOPIC_DATA, ATTRIBUTE_DDETOPIC_DATA + "=\""+ DDE_DATA_BLEACHED2 +"\"");
     	
     	// Write the result
     	try (OutputStream os = part.getOutputStream()) {
@@ -78,11 +104,11 @@ public class OOXMLTagHelper {
     			
         session.recordThreat(
         	threat()
-        		.type(ThreatType.EXTERNAL_CONTENT)
+        		.type(external ? ThreatType.EXTERNAL_CONTENT : ThreatType.ACTIVE_CONTENT)
     		    .severity(ThreatSeverity.HIGH)
     		    .action(ThreatAction.REMOVE)
     		    .location(part.getPartName().getName())
-    		    .details("Removed tag \"externalData\" from the document.")
+    		    .details("Removed tag \" " + (external ? "externalData" : "DDEAUTO") + "\" from the document.")
     		    .build()
         );
 	}

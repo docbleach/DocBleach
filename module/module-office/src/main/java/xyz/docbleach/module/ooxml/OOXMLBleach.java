@@ -115,7 +115,7 @@ public class OOXMLBleach implements Bleach {
     public boolean handlesMagic(InputStream stream) {
         try {
             return DocumentFactoryHelper.hasOOXMLHeader(stream);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.warn("An exception occured", e);
             return false;
         }
@@ -186,7 +186,7 @@ public class OOXMLBleach implements Bleach {
             part = it.next();
             sanitize(session, pkg, part);
             
-            OOXMLTagHelper.removeExternalDataTag(session, part);
+            OOXMLTagHelper.removeExternalDataTagAndDDE(session, part);
 
             if (!part.isRelationshipPart()) {
                 sanitize(session, part, part.getRelationships());
@@ -345,6 +345,8 @@ public class OOXMLBleach implements Bleach {
 
         String contentType = part.getContentType();
         LOGGER.debug("Content type: {} for part {}", contentType, part.getPartName());
+        
+
 
         // Sample content types:
         // vnd.ms-word.vbaData+xml, vnd.ms-office.vbaProject
@@ -364,6 +366,7 @@ public class OOXMLBleach implements Bleach {
 
             session.recordThreat(threat);
         }
+        
     }
 
     /**
