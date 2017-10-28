@@ -25,10 +25,10 @@ public class OLE2Bleach implements Bleach {
     public boolean handlesMagic(InputStream stream) {
         try {
             return NPOIFSFileSystem.hasPOIFSHeader(stream);
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.warn("An exception occured", e);
             return false;
-        }
+        } 
     }
 
     @Override
