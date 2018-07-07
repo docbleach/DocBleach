@@ -23,11 +23,6 @@ addons:
     - libxi6:i386
     - libxtst6:i386
 
-env:
-  global:
-   # COVERITY_SCAN_TOKEN
-   - secure: "PuwXYpDtuWdaGRqqcB71VONsss5tnmfh50n5LqOjyiAcWRVQXCvSz9VpUKYBFSp14w1KvyCgbo84itwRw+6o+ujOmTf4OPvqxLKKKDV8KbqipAwNOY6+3Nu7x7r3XokLJ1Yi3pSEXzerI6auORHySC98wV+WE0cjhaxC3Oqdsd4N/CIYcXoinLUXMaG7wLGBddB0mhkrHGdyYnsY8BStdwpJAtWwZs7q6vrFI6K4H6VYJlYxtF1CiocYWRh2ZSteK4W7I60938BP+39Oiz3b0FMHLIHZr2vr3Xgx2JpH77MIDhEWm7fMHDDJbC+PljFT0X8/50BJlHDs5sKpq5TUC0CMSrbn5kaopbDmaCW8AyuCyIFQQpA6hZyxKXxly3gHjUqL1GAtFGk/1zgq/PdXub7T808BsZ45LvWiLcVNub6x51p6LenTxMUiEgcWuismdOwnBdSGCCXx1CIJ9BrAmR+SXC0z+vxWMTXk0mgkmnS+bggkNCqDYL2PNk2OlEQjlS9Nsfo5fIk0bPY0pQnBPl08MllOA3h3zaB49Waro1EM2za4PzWDYt8LrqEYyX/ZyH/HuAm9ZtvhakYnlpSf50+w2MgYG15XIioQwLbRee3OotxUfvKclRSIPNs8PkFA5PfIm+kLR4T6oDwzBijdbwA0exlhK5T5xnidKb4l9f4="
-
 cache:
   directories:
   - '$HOME/.m2'
