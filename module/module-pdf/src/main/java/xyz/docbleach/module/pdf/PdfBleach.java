@@ -183,7 +183,7 @@ public class PdfBleach implements Bleach {
 
         PDEmbeddedFile ef;
         try {
-            ef = new PDEmbeddedFile(doc, fakeFile);
+            ef = new PDEmbeddedFile(doc, fakeFile, COSName.FLATE_DECODE);
             ef.setCreationDate(file.getCreationDate());
             ef.setModDate(file.getModDate());
         } catch (IOException e) {
@@ -197,7 +197,6 @@ public class PdfBleach implements Bleach {
         ef.setMacCreator(file.getMacCreator());
         ef.setMacResFork(file.getMacResFork());
         ef.setMacSubtype(file.getMacSubtype());
-
 
         // We remove the real file
         file.setSize(0);
