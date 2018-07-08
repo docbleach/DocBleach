@@ -1,193 +1,204 @@
 package xyz.docbleach.module.pdf;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static xyz.docbleach.api.BleachTestBase.assertThreatsFound;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
-import org.apache.pdfbox.pdmodel.interactive.action.*;
+import org.apache.pdfbox.pdmodel.interactive.action.PDActionJavaScript;
+import org.apache.pdfbox.pdmodel.interactive.action.PDAnnotationAdditionalActions;
+import org.apache.pdfbox.pdmodel.interactive.action.PDDocumentCatalogAdditionalActions;
+import org.apache.pdfbox.pdmodel.interactive.action.PDFormFieldAdditionalActions;
+import org.apache.pdfbox.pdmodel.interactive.action.PDPageAdditionalActions;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationWidget;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import xyz.docbleach.api.BleachSession;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-import static xyz.docbleach.api.BleachTestBase.assertThreatsFound;
-
 class PdfBleachTest {
-    private PdfBleach instance;
-    private BleachSession session;
 
-    @BeforeEach
-    void setUp() {
-        instance = new PdfBleach();
-        session = mock(BleachSession.class);
-    }
+  private PdfBleach instance;
+  private BleachSession session;
 
-    @Test
-    void handlesMagic() throws IOException {
-        Charset charset = Charset.defaultCharset();
-        InputStream validInputStream = new ByteArrayInputStream("%PDF1.5".getBytes(charset));
-        assertTrue(instance.handlesMagic(validInputStream));
+  @BeforeEach
+  void setUp() {
+    instance = new PdfBleach();
+    session = mock(BleachSession.class);
+  }
 
-        // Check that empty (shorter than %PDF1.-length) does not trigger an error
-        InputStream invalidInputStream = new ByteArrayInputStream("".getBytes(charset));
-        assertFalse(instance.handlesMagic(invalidInputStream));
+  @Test
+  void handlesMagic() throws IOException {
+    Charset charset = Charset.defaultCharset();
+    InputStream validInputStream = new ByteArrayInputStream("%PDF1.5".getBytes(charset));
+    assertTrue(instance.handlesMagic(validInputStream));
 
-        // Check that this bleach is sane
-        invalidInputStream = new ByteArrayInputStream("Anything".getBytes(charset));
-        assertFalse(instance.handlesMagic(invalidInputStream));
-    }
+    // Check that empty (shorter than %PDF1.-length) does not trigger an error
+    InputStream invalidInputStream = new ByteArrayInputStream("".getBytes(charset));
+    assertFalse(instance.handlesMagic(invalidInputStream));
 
-    @Test
-    void sanitizeAcroFormActions() {
-        PDFormFieldAdditionalActions fieldActions = new PDFormFieldAdditionalActions();
-        fieldActions.setC(new PDActionJavaScript());
-        fieldActions.setF(new PDActionJavaScript());
-        fieldActions.setK(new PDActionJavaScript());
-        fieldActions.setV(new PDActionJavaScript());
+    // Check that this bleach is sane
+    invalidInputStream = new ByteArrayInputStream("Anything".getBytes(charset));
+    assertFalse(instance.handlesMagic(invalidInputStream));
+  }
 
-        instance.sanitizeFieldAdditionalActions(session, fieldActions);
-        assertThreatsFound(session, 4);
+  @Test
+  void sanitizeAcroFormActions() {
+    PDFormFieldAdditionalActions fieldActions = new PDFormFieldAdditionalActions();
+    fieldActions.setC(new PDActionJavaScript());
+    fieldActions.setF(new PDActionJavaScript());
+    fieldActions.setK(new PDActionJavaScript());
+    fieldActions.setV(new PDActionJavaScript());
 
-        assertNull(fieldActions.getC());
-        assertNull(fieldActions.getF());
-        assertNull(fieldActions.getK());
-        assertNull(fieldActions.getV());
+    instance.sanitizeFieldAdditionalActions(session, fieldActions);
+    assertThreatsFound(session, 4);
 
-        reset(session);
+    assertNull(fieldActions.getC());
+    assertNull(fieldActions.getF());
+    assertNull(fieldActions.getK());
+    assertNull(fieldActions.getV());
 
-        // Simple check to make sure this method is idempotent
-        instance.sanitizeFieldAdditionalActions(session, fieldActions);
-        assertThreatsFound(session, 0);
-    }
+    reset(session);
 
-    @Test
-    void sanitizePageActions() {
-        PDPageAdditionalActions actions = new PDPageAdditionalActions();
-        actions.setC(new PDActionJavaScript());
-        actions.setO(new PDActionJavaScript());
+    // Simple check to make sure this method is idempotent
+    instance.sanitizeFieldAdditionalActions(session, fieldActions);
+    assertThreatsFound(session, 0);
+  }
 
-        instance.sanitizePageActions(session, actions);
-        assertThreatsFound(session, 2);
+  @Test
+  void sanitizePageActions() {
+    PDPageAdditionalActions actions = new PDPageAdditionalActions();
+    actions.setC(new PDActionJavaScript());
+    actions.setO(new PDActionJavaScript());
 
-        assertNull(actions.getC());
-        assertNull(actions.getO());
+    instance.sanitizePageActions(session, actions);
+    assertThreatsFound(session, 2);
 
-        reset(session);
+    assertNull(actions.getC());
+    assertNull(actions.getO());
 
-        instance.sanitizePageActions(session, actions);
-        assertThreatsFound(session, 0);
-    }
+    reset(session);
 
-    @Test
-    void sanitizeAdditionalActions() {
-        PDDocumentCatalogAdditionalActions documentCatalogAdditionalActions = new PDDocumentCatalogAdditionalActions();
-        instance.sanitizeDocumentActions(session, documentCatalogAdditionalActions);
-        documentCatalogAdditionalActions.setDP(new PDActionJavaScript());
-        documentCatalogAdditionalActions.setDS(new PDActionJavaScript());
-        documentCatalogAdditionalActions.setWC(new PDActionJavaScript());
-        documentCatalogAdditionalActions.setWP(new PDActionJavaScript());
-        documentCatalogAdditionalActions.setWS(new PDActionJavaScript());
+    instance.sanitizePageActions(session, actions);
+    assertThreatsFound(session, 0);
+  }
 
-        instance.sanitizeDocumentActions(session, documentCatalogAdditionalActions);
-        assertThreatsFound(session, 5);
-        reset(session);
+  @Test
+  void sanitizeAdditionalActions() {
+    PDDocumentCatalogAdditionalActions documentCatalogAdditionalActions =
+        new PDDocumentCatalogAdditionalActions();
+    instance.sanitizeDocumentActions(session, documentCatalogAdditionalActions);
+    documentCatalogAdditionalActions.setDP(new PDActionJavaScript());
+    documentCatalogAdditionalActions.setDS(new PDActionJavaScript());
+    documentCatalogAdditionalActions.setWC(new PDActionJavaScript());
+    documentCatalogAdditionalActions.setWP(new PDActionJavaScript());
+    documentCatalogAdditionalActions.setWS(new PDActionJavaScript());
 
-        assertNull(documentCatalogAdditionalActions.getDP());
-        assertNull(documentCatalogAdditionalActions.getDS());
-        assertNull(documentCatalogAdditionalActions.getWC());
-        assertNull(documentCatalogAdditionalActions.getWP());
-        assertNull(documentCatalogAdditionalActions.getWS());
+    instance.sanitizeDocumentActions(session, documentCatalogAdditionalActions);
+    assertThreatsFound(session, 5);
+    reset(session);
 
-        instance.sanitizeDocumentActions(session, documentCatalogAdditionalActions);
-        assertThreatsFound(session, 0);
-    }
+    assertNull(documentCatalogAdditionalActions.getDP());
+    assertNull(documentCatalogAdditionalActions.getDS());
+    assertNull(documentCatalogAdditionalActions.getWC());
+    assertNull(documentCatalogAdditionalActions.getWP());
+    assertNull(documentCatalogAdditionalActions.getWS());
 
-    @Test
-    void sanitizeOpenAction() throws IOException {
-        PDDocumentCatalog documentCatalog = mock(PDDocumentCatalog.class);
+    instance.sanitizeDocumentActions(session, documentCatalogAdditionalActions);
+    assertThreatsFound(session, 0);
+  }
 
-        when(documentCatalog.getOpenAction()).thenReturn(new PDActionJavaScript());
-        instance.sanitizeOpenAction(session, documentCatalog);
+  @Test
+  void sanitizeOpenAction() throws IOException {
+    PDDocumentCatalog documentCatalog = mock(PDDocumentCatalog.class);
 
-        verify(documentCatalog, atLeastOnce()).getOpenAction();
-        verify(documentCatalog, atLeastOnce()).setOpenAction(null);
-        assertThreatsFound(session, 1);
+    when(documentCatalog.getOpenAction()).thenReturn(new PDActionJavaScript());
+    instance.sanitizeOpenAction(session, documentCatalog);
 
-        reset(session);
-        reset(documentCatalog);
+    verify(documentCatalog, atLeastOnce()).getOpenAction();
+    verify(documentCatalog, atLeastOnce()).setOpenAction(null);
+    assertThreatsFound(session, 1);
 
-        when(documentCatalog.getOpenAction()).thenReturn(null);
-        instance.sanitizeOpenAction(session, documentCatalog);
-        verify(documentCatalog, atLeastOnce()).getOpenAction();
-        verify(documentCatalog, never()).setOpenAction(null);
+    reset(session);
+    reset(documentCatalog);
 
-        assertThreatsFound(session, 0);
-    }
+    when(documentCatalog.getOpenAction()).thenReturn(null);
+    instance.sanitizeOpenAction(session, documentCatalog);
+    verify(documentCatalog, atLeastOnce()).getOpenAction();
+    verify(documentCatalog, never()).setOpenAction(null);
 
-    @Test
-    void sanitizeAnnotationLink() {
-        PDAnnotationLink annotationLink = new PDAnnotationLink();
-        annotationLink.setAction(new PDActionJavaScript());
-        instance.sanitizeLinkAnnotation(session, annotationLink);
+    assertThreatsFound(session, 0);
+  }
 
-        assertThreatsFound(session, 1);
-        assertNull(annotationLink.getAction());
+  @Test
+  void sanitizeAnnotationLink() {
+    PDAnnotationLink annotationLink = new PDAnnotationLink();
+    annotationLink.setAction(new PDActionJavaScript());
+    instance.sanitizeLinkAnnotation(session, annotationLink);
 
-        reset(session);
+    assertThreatsFound(session, 1);
+    assertNull(annotationLink.getAction());
 
-        instance.sanitizeLinkAnnotation(session, annotationLink);
-        assertThreatsFound(session, 0);
-    }
+    reset(session);
 
-    @Test
-    void sanitizeAnnotationWidgetAction() {
-        PDAnnotationWidget annotationWidget = new PDAnnotationWidget();
-        annotationWidget.setAction(new PDActionJavaScript());
+    instance.sanitizeLinkAnnotation(session, annotationLink);
+    assertThreatsFound(session, 0);
+  }
 
-        instance.sanitizeWidgetAnnotation(session, annotationWidget);
+  @Test
+  void sanitizeAnnotationWidgetAction() {
+    PDAnnotationWidget annotationWidget = new PDAnnotationWidget();
+    annotationWidget.setAction(new PDActionJavaScript());
 
-        assertThreatsFound(session, 1);
-        assertNull(annotationWidget.getAction());
-        reset(session);
+    instance.sanitizeWidgetAnnotation(session, annotationWidget);
 
-        instance.sanitizeWidgetAnnotation(session, annotationWidget);
-        assertThreatsFound(session, 0);
-    }
+    assertThreatsFound(session, 1);
+    assertNull(annotationWidget.getAction());
+    reset(session);
 
-    @Test
-    void sanitizeAnnotationWidgetActions() {
-        PDAnnotationAdditionalActions annotationAdditionalActions = new PDAnnotationAdditionalActions();
-        annotationAdditionalActions.setBl(new PDActionJavaScript());
-        annotationAdditionalActions.setD(new PDActionJavaScript());
-        annotationAdditionalActions.setE(new PDActionJavaScript());
-        annotationAdditionalActions.setFo(new PDActionJavaScript());
-        annotationAdditionalActions.setPC(new PDActionJavaScript());
-        annotationAdditionalActions.setPI(new PDActionJavaScript());
-        annotationAdditionalActions.setPO(new PDActionJavaScript());
-        annotationAdditionalActions.setU(new PDActionJavaScript());
-        annotationAdditionalActions.setX(new PDActionJavaScript());
+    instance.sanitizeWidgetAnnotation(session, annotationWidget);
+    assertThreatsFound(session, 0);
+  }
 
-        instance.sanitizeAnnotationActions(session, annotationAdditionalActions);
-        assertNull(annotationAdditionalActions.getBl());
-        assertNull(annotationAdditionalActions.getD());
-        assertNull(annotationAdditionalActions.getE());
-        assertNull(annotationAdditionalActions.getFo());
-        assertNull(annotationAdditionalActions.getPC());
-        assertNull(annotationAdditionalActions.getPI());
-        assertNull(annotationAdditionalActions.getPO());
-        assertNull(annotationAdditionalActions.getU());
-        assertNull(annotationAdditionalActions.getX());
+  @Test
+  void sanitizeAnnotationWidgetActions() {
+    PDAnnotationAdditionalActions annotationAdditionalActions = new PDAnnotationAdditionalActions();
+    annotationAdditionalActions.setBl(new PDActionJavaScript());
+    annotationAdditionalActions.setD(new PDActionJavaScript());
+    annotationAdditionalActions.setE(new PDActionJavaScript());
+    annotationAdditionalActions.setFo(new PDActionJavaScript());
+    annotationAdditionalActions.setPC(new PDActionJavaScript());
+    annotationAdditionalActions.setPI(new PDActionJavaScript());
+    annotationAdditionalActions.setPO(new PDActionJavaScript());
+    annotationAdditionalActions.setU(new PDActionJavaScript());
+    annotationAdditionalActions.setX(new PDActionJavaScript());
 
-        assertThreatsFound(session, 9);
-        reset(session);
+    instance.sanitizeAnnotationActions(session, annotationAdditionalActions);
+    assertNull(annotationAdditionalActions.getBl());
+    assertNull(annotationAdditionalActions.getD());
+    assertNull(annotationAdditionalActions.getE());
+    assertNull(annotationAdditionalActions.getFo());
+    assertNull(annotationAdditionalActions.getPC());
+    assertNull(annotationAdditionalActions.getPI());
+    assertNull(annotationAdditionalActions.getPO());
+    assertNull(annotationAdditionalActions.getU());
+    assertNull(annotationAdditionalActions.getX());
 
-        instance.sanitizeAnnotationActions(session, annotationAdditionalActions);
-        assertThreatsFound(session, 0);
-    }
+    assertThreatsFound(session, 9);
+    reset(session);
+
+    instance.sanitizeAnnotationActions(session, annotationAdditionalActions);
+    assertThreatsFound(session, 0);
+  }
 }

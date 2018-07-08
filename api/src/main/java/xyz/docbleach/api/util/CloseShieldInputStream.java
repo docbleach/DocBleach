@@ -23,26 +23,26 @@ import java.io.InputStream;
 
 /**
  * Proxy stream that prevents the underlying input stream from being closed.
- * <p>
- * This class is typically used in cases where an input stream needs to be
- * passed to a component that wants to explicitly close the stream even if
- * more input would still be available to other components.
- * <p>
- * JavaDoc copied from the Apache Commons-IO project, with code changed to match our dependencies.
- * file: org.apache.commons.io.input.CloseShieldInputStream.java
+ *
+ * <p>This class is typically used in cases where an input stream needs to be passed to a component
+ * that wants to explicitly close the stream even if more input would still be available to other
+ * components.
+ *
+ * <p>JavaDoc copied from the Apache Commons-IO project, with code changed to match our
+ * dependencies. file: org.apache.commons.io.input.CloseShieldInputStream.java
  */
 public class CloseShieldInputStream extends FilterInputStream {
 
-    public CloseShieldInputStream(InputStream inStream) {
-        super(inStream);
-    }
+  public CloseShieldInputStream(InputStream inStream) {
+    super(inStream);
+  }
 
-    @Override
-    public void close() throws IOException {
-        // no-action
-    }
+  @Override
+  public void close() throws IOException {
+    // no-action
+  }
 
-    public void _close() throws IOException {
-        super.close();
-    }
+  public void _close() throws IOException {
+    super.close();
+  }
 }

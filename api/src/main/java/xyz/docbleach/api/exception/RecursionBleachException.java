@@ -5,10 +5,10 @@ package xyz.docbleach.api.exception;
  */
 public class RecursionBleachException extends BleachException {
 
-    /**
-     * @param depth The depth of the recursion
-     */
-    public RecursionBleachException(int depth) {
-        super("Recursion exploit? There are already " + depth + " sanitation tasks.");
-    }
+  /**
+   * @param depth The depth of the recursion
+   */
+  public RecursionBleachException(int depth) {
+    super("Recursion exploit? There are already " + depth + " sanitation tasks.");
+  }
 }
