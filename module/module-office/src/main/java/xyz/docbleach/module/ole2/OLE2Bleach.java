@@ -24,11 +24,11 @@ public class OLE2Bleach implements Bleach {
     @Override
     public boolean handlesMagic(InputStream stream) {
         try {
-            return NPOIFSFileSystem.hasPOIFSHeader(stream);
+            return stream.available() > 4 && NPOIFSFileSystem.hasPOIFSHeader(stream);
         } catch (Exception e) {
             LOGGER.warn("An exception occured", e);
             return false;
-        } 
+        }
     }
 
     @Override
@@ -73,6 +73,7 @@ public class OLE2Bleach implements Bleach {
                 .and(new SummaryInformationSanitiser(session));
 
         LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
+        // https://blogs.msdn.microsoft.com/heaths/2006/02/27/identifying-windows-installer-file-types/
         rootOut.setStorageClsid(rootIn.getStorageClsid());
 
         rootIn.getEntries().forEachRemaining(entry -> {
