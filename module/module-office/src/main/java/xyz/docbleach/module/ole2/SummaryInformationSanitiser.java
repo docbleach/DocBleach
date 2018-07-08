@@ -43,6 +43,9 @@ public class SummaryInformationSanitiser extends EntryFilter {
     }
 
     protected void sanitizeSummaryInformation(BleachSession session, DocumentEntry dsiEntry) {
+        if (dsiEntry.getSize() <= 0) {
+            return;
+        }
         try (DocumentInputStream dis = new DocumentInputStream(dsiEntry)) {
             PropertySet ps = new PropertySet(dis);
             // Useful for debugging purposes
