@@ -11,7 +11,8 @@ import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.DocumentEntry;
 import org.apache.poi.poifs.filesystem.DocumentInputStream;
 import org.apache.poi.poifs.filesystem.Entry;
-import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
@@ -31,7 +32,7 @@ public class OLE2Bleach implements Bleach {
   @Override
   public boolean handlesMagic(InputStream stream) {
     try {
-      return stream.available() > 4 && NPOIFSFileSystem.hasPOIFSHeader(stream);
+      return stream.available() > 4 && FileMagic.valueOf(stream) == FileMagic.OLE2;
     } catch (Exception e) {
       LOGGER.warn("An exception occured", e);
       return false;
@@ -46,8 +47,8 @@ public class OLE2Bleach implements Bleach {
   @Override
   public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session)
       throws BleachException {
-    try (NPOIFSFileSystem fsIn = new NPOIFSFileSystem(inputStream);
-        NPOIFSFileSystem fs = new NPOIFSFileSystem()) {
+    try (POIFSFileSystem fsIn = new POIFSFileSystem(inputStream);
+        POIFSFileSystem fs = new POIFSFileSystem()) {
       // @TODO: Filter based on Storage Class ID - see issue #23
       sanitize(session, fsIn, fs);
 
@@ -61,7 +62,7 @@ public class OLE2Bleach implements Bleach {
     }
   }
 
-  protected void sanitize(BleachSession session, NPOIFSFileSystem fsIn, NPOIFSFileSystem fs) {
+  protected void sanitize(BleachSession session, POIFSFileSystem fsIn, POIFSFileSystem fs) {
     DirectoryEntry rootIn = fsIn.getRoot();
     DirectoryEntry rootOut = fs.getRoot();
 
