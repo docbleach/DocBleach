@@ -59,7 +59,6 @@ public class SummaryInformationSanitiser extends EntryFilter {
       sanitizeSummaryInformation(session, dsi);
     } catch (NoPropertySetStreamException
         | UnexpectedPropertySetTypeException
-        | MarkUnsupportedException
         | IOException e) {
       LOGGER.error("An error occured while trying to sanitize the document entry", e);
     }

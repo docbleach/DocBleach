@@ -7,7 +7,7 @@ import java.util.HashSet;
 import org.apache.poi.hssf.model.InternalWorkbook;
 import org.apache.poi.hssf.record.Record;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.poifs.filesystem.NPOIFSFileSystem;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ public class ExcelRecordCleaner {
    */
   private static final short OB_PROJ_SID = 0xD3;
 
-  protected static void cleanupAndSaveExcel97(NPOIFSFileSystem fs, OutputStream outputStream)
+  protected static void cleanupAndSaveExcel97(POIFSFileSystem fs, OutputStream outputStream)
       throws IOException {
     Workbook wb = WorkbookFactory.create(fs);
 
