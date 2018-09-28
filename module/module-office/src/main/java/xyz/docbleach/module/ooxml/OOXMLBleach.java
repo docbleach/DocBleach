@@ -21,6 +21,7 @@ import org.apache.poi.openxml4j.opc.RelationshipSource;
 import org.apache.poi.openxml4j.opc.TargetMode;
 import org.apache.poi.openxml4j.opc.internal.ContentType;
 import org.apache.poi.poifs.filesystem.DocumentFactoryHelper;
+import org.apache.poi.poifs.filesystem.FileMagic;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
@@ -131,7 +132,7 @@ public class OOXMLBleach implements Bleach {
   @Override
   public boolean handlesMagic(InputStream stream) {
     try {
-      return stream.available() > 4 && DocumentFactoryHelper.hasOOXMLHeader(stream);
+      return stream.available() > 4 && FileMagic.valueOf(stream) == FileMagic.OOXML;
     } catch (Exception e) {
       LOGGER.warn("An exception occured", e);
       return false;
