@@ -52,9 +52,4 @@ public class UnsafeSecurityManager extends SecurityManager {
   public void checkExec(String cmd) {
     throw new SecurityException("Exec forbidden.");
   }
-
-  @Override
-  public void checkSystemClipboardAccess() {
-    throw new SecurityException("System Clipboard Access forbidden.");
-  }
 }
