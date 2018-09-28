@@ -9,8 +9,6 @@ jdk:
 
 matrix:
   fast_finish: true
-  allow_failures:
-  - jdk: openjdk11
 
 sudo: false
 install: true
