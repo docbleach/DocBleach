@@ -119,7 +119,7 @@ welcome,  and threats evolve - so should we.
 Some things would be awesome, though:
 - Adding a way to configure bleaches
 - Write tests!
-- Writing more content to show explain how the sanitation process works, why it works.
+- Writing more content to show and explain how the sanitation process works, why it works.
 - Adding more stats!
 
 
