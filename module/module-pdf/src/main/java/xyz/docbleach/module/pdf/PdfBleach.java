@@ -116,19 +116,19 @@ public class PdfBleach implements Bleach {
   }
 
   private void sanitizeDocumentOutline(BleachSession session, PDDocumentOutline documentOutline) {
-      if (documentOutline == null) {
-          return;
-      }
-      if (!documentOutline.hasChildren()) {
-          return;
-      }
+    if (documentOutline == null) {
+      return;
+    }
+    if (!documentOutline.hasChildren()) {
+      return;
+    }
     documentOutline.children().forEach(item -> sanitizeDocumentOutlineItem(session, item));
   }
 
   private void sanitizeDocumentOutlineItem(BleachSession session, PDOutlineItem item) {
-      if (item.getAction() == null) {
-          return;
-      }
+    if (item.getAction() == null) {
+      return;
+    }
     LOGGER.debug("Found&removed action on outline item (was {})", item.getAction());
     item.setAction(null);
     recordJavascriptThreat(session, "DocumentOutline Item Action", "Action");
@@ -136,9 +136,9 @@ public class PdfBleach implements Bleach {
 
   private void sanitizeNamed(
       BleachSession session, PDDocument doc, PDDocumentNameDictionary names) {
-      if (names == null) {
-          return;
-      }
+    if (names == null) {
+      return;
+    }
 
     sanitizeRecursiveNameTree(
         names.getEmbeddedFiles(), fileSpec -> sanitizeEmbeddedFile(session, doc, fileSpec));
@@ -156,9 +156,9 @@ public class PdfBleach implements Bleach {
 
   private <T extends COSObjectable> void sanitizeRecursiveNameTree(
       PDNameTreeNode<T> efTree, Consumer<T> callback) {
-      if (efTree == null) {
-          return;
-      }
+    if (efTree == null) {
+      return;
+    }
 
     Map<String, T> _names;
     try {
@@ -171,9 +171,9 @@ public class PdfBleach implements Bleach {
     if (_names != null) {
       _names.values().forEach(callback);
     }
-      if (efTree.getKids() == null) {
-          return;
-      }
+    if (efTree.getKids() == null) {
+      return;
+    }
     for (PDNameTreeNode<T> node : efTree.getKids()) {
       sanitizeRecursiveNameTree(node, callback);
     }
@@ -195,9 +195,9 @@ public class PdfBleach implements Bleach {
 
   private PDEmbeddedFile sanitizeEmbeddedFile(
       BleachSession session, PDDocument doc, PDEmbeddedFile file) {
-      if (file == null) {
-          return null;
-      }
+    if (file == null) {
+      return null;
+    }
 
     LOGGER.debug("Sanitizing file: Size: {}, Mime-Type: {}, ", file.getSize(), file.getSubtype());
 

@@ -3,7 +3,6 @@ package xyz.docbleach.module.ole2;
 import static xyz.docbleach.api.threat.ThreatBuilder.threat;
 
 import java.io.IOException;
-import org.apache.poi.hpsf.MarkUnsupportedException;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
 import org.apache.poi.hpsf.PropertySet;
 import org.apache.poi.hpsf.SummaryInformation;
