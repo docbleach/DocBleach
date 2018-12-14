@@ -1,7 +1,5 @@
 package xyz.docbleach.module.pdf;
 
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
-
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -602,14 +600,13 @@ public class PdfBleach implements Bleach {
   }
 
   private void recordJavascriptThreat(BleachSession session, String location, String details) {
-    Threat threat =
-        threat()
-            .type(ThreatType.ACTIVE_CONTENT)
-            .severity(ThreatSeverity.HIGH)
-            .details(details)
-            .location(location)
-            .action(ThreatAction.REMOVE)
-            .build();
+    Threat threat = Threat.builder()
+        .type(ThreatType.ACTIVE_CONTENT)
+        .severity(ThreatSeverity.HIGH)
+        .details(details)
+        .location(location)
+        .action(ThreatAction.REMOVE)
+        .build();
 
     session.recordThreat(threat);
   }

@@ -1,7 +1,5 @@
 package xyz.docbleach.module.ooxml;
 
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -260,14 +258,13 @@ public class OOXMLBleach implements Bleach {
         oldContentType,
         newContentType);
 
-    Threat threat =
-        threat()
-            .type(ThreatType.UNRECOGNIZED_CONTENT)
-            .severity(ThreatSeverity.LOW)
-            .action(ThreatAction.DISARM)
-            .location(part.getPartName().getName())
-            .details("Remapped content type: " + oldContentType)
-            .build();
+    Threat threat = Threat.builder()
+        .type(ThreatType.UNRECOGNIZED_CONTENT)
+        .severity(ThreatSeverity.LOW)
+        .action(ThreatAction.DISARM)
+        .location(part.getPartName().getName())
+        .details("Remapped content type: " + oldContentType)
+        .build();
 
     session.recordThreat(threat);
   }
@@ -303,14 +300,13 @@ public class OOXMLBleach implements Bleach {
     if (isBlacklistedRelationType(relationshipType)) {
       replaceRelationship(pkg, relationship);
 
-      Threat threat =
-          threat()
-              .type(ThreatType.ACTIVE_CONTENT)
-              .severity(ThreatSeverity.HIGH)
-              .action(ThreatAction.REMOVE)
-              .location(relationship.getSource().getPartName().getName())
-              .details("Blacklisted relationship type: " + relationshipType)
-              .build();
+      Threat threat = Threat.builder()
+          .type(ThreatType.ACTIVE_CONTENT)
+          .severity(ThreatSeverity.HIGH)
+          .action(ThreatAction.REMOVE)
+          .location(relationship.getSource().getPartName().getName())
+          .details("Blacklisted relationship type: " + relationshipType)
+          .build();
 
       session.recordThreat(threat);
       return;
@@ -333,14 +329,13 @@ public class OOXMLBleach implements Bleach {
         LOGGER.debug(EXTERNAL_RELATION_FORMAT, sourceUri, targetUri, relationType);
       }
 
-      Threat threat =
-          threat()
-              .type(ThreatType.EXTERNAL_CONTENT)
-              .severity(severity)
-              .action(ThreatAction.REMOVE)
-              .location(relationship.getSource().getPartName().getName())
-              .details("External relationship of type: " + relationshipType)
-              .build();
+      Threat threat = Threat.builder()
+          .type(ThreatType.EXTERNAL_CONTENT)
+          .severity(severity)
+          .action(ThreatAction.REMOVE)
+          .location(relationship.getSource().getPartName().getName())
+          .details("External relationship of type: " + relationshipType)
+          .build();
 
       session.recordThreat(threat);
     }
@@ -394,14 +389,13 @@ public class OOXMLBleach implements Bleach {
       LOGGER.debug(SUSPICIOUS_OOXML_FORMAT, contentType, part.getPartName(), part.getSize());
       deletePart(pkg, part.getPartName());
 
-      Threat threat =
-          threat()
-              .type(ThreatType.ACTIVE_CONTENT)
-              .severity(ThreatSeverity.HIGH)
-              .action(ThreatAction.REMOVE)
-              .location(part.getPartName().getName())
-              .details("Forbidden content type: " + type)
-              .build();
+      Threat threat = Threat.builder()
+          .type(ThreatType.ACTIVE_CONTENT)
+          .severity(ThreatSeverity.HIGH)
+          .action(ThreatAction.REMOVE)
+          .location(part.getPartName().getName())
+          .details("Forbidden content type: " + type)
+          .build();
 
       session.recordThreat(threat);
     }

@@ -1,63 +1,37 @@
 package xyz.docbleach.api.threat;
 
-import java.io.Serializable;
+import com.google.auto.value.AutoValue;
 
-public class Threat implements Serializable {
+@AutoValue
+public abstract class Threat {
 
-  private final ThreatType type;
-  private final ThreatSeverity severity;
-  private final ThreatAction action;
-  private final String location;
-  private final String details;
-
-  public Threat(
-      ThreatType type,
-      ThreatSeverity severity,
-      String location,
-      String details,
-      ThreatAction action) {
-    this.type = type;
-    this.severity = severity;
-    this.action = action;
-    this.location = location;
-    this.details = details;
+  public static Builder builder() {
+    return new AutoValue_Threat.Builder();
   }
 
-  public ThreatType getType() {
-    return type;
+  @AutoValue.Builder
+  public abstract static class Builder {
+
+    public abstract Builder type(ThreatType value);
+
+    public abstract Builder severity(ThreatSeverity value);
+
+    public abstract Builder action(ThreatAction value);
+
+    public abstract Builder location(String value);
+
+    public abstract Builder details(String value);
+
+    public abstract Threat build();
   }
 
-  public ThreatSeverity getSeverity() {
-    return severity;
-  }
+  public abstract ThreatType type();
 
-  public String getLocation() {
-    return location;
-  }
+  public abstract ThreatSeverity severity();
 
-  public String getDetails() {
-    return details;
-  }
+  public abstract ThreatAction action();
 
-  public ThreatAction getAction() {
-    return action;
-  }
+  public abstract String location();
 
-  @Override
-  public String toString() {
-    return "Threat{"
-        + "type="
-        + type
-        + ", severity="
-        + severity
-        + ", action="
-        + action
-        + ", location='"
-        + location
-        + '\''
-        + ", details='"
-        + details
-        + '\''
-        + '}';
-  }
+  public abstract String details();
 }

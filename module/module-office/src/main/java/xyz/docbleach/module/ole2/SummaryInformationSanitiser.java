@@ -1,7 +1,5 @@
 package xyz.docbleach.module.ole2;
 
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
-
 import java.io.IOException;
 import org.apache.poi.hpsf.NoPropertySetStreamException;
 import org.apache.poi.hpsf.PropertySet;
@@ -79,14 +77,13 @@ public class SummaryInformationSanitiser extends EntryFilter {
 
     dsi.removeComments();
 
-    Threat threat =
-        threat()
-            .type(ThreatType.UNRECOGNIZED_CONTENT)
-            .severity(ThreatSeverity.LOW)
-            .action(ThreatAction.REMOVE)
-            .location("Summary Information - Comment")
-            .details("Comment was: '" + comments + "'")
-            .build();
+    Threat threat = Threat.builder()
+        .type(ThreatType.UNRECOGNIZED_CONTENT)
+        .severity(ThreatSeverity.LOW)
+        .action(ThreatAction.REMOVE)
+        .location("Summary Information - Comment")
+        .details("Comment was: '" + comments + "'")
+        .build();
 
     session.recordThreat(threat);
   }
@@ -108,14 +105,13 @@ public class SummaryInformationSanitiser extends EntryFilter {
     ThreatSeverity severity =
         isExternalTemplate(template) ? ThreatSeverity.HIGH : ThreatSeverity.LOW;
 
-    Threat threat =
-        threat()
-            .type(ThreatType.EXTERNAL_CONTENT)
-            .severity(severity)
-            .action(ThreatAction.REMOVE)
-            .location("Summary Information - Template")
-            .details("Template was: '" + template + "'")
-            .build();
+    Threat threat = Threat.builder()
+        .type(ThreatType.EXTERNAL_CONTENT)
+        .severity(severity)
+        .action(ThreatAction.REMOVE)
+        .location("Summary Information - Template")
+        .details("Template was: '" + template + "'")
+        .build();
 
     session.recordThreat(threat);
   }

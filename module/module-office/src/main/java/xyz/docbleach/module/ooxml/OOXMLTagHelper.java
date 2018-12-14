@@ -1,7 +1,5 @@
 package xyz.docbleach.module.ooxml;
 
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +11,7 @@ import org.apache.poi.openxml4j.opc.ZipPackagePart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
+import xyz.docbleach.api.threat.Threat;
 import xyz.docbleach.api.threat.ThreatAction;
 import xyz.docbleach.api.threat.ThreatSeverity;
 import xyz.docbleach.api.threat.ThreatType;
@@ -107,17 +106,16 @@ public class OOXMLTagHelper {
       return;
     }
 
-    session.recordThreat(
-        threat()
-            .type(external ? ThreatType.EXTERNAL_CONTENT : ThreatType.ACTIVE_CONTENT)
-            .severity(ThreatSeverity.HIGH)
-            .action(ThreatAction.REMOVE)
-            .location(part.getPartName().getName())
-            .details(
-                "Removed tag \" "
-                    + (external ? "externalData" : "DDEAUTO")
-                    + "\" from the document.")
-            .build());
+    session.recordThreat(Threat.builder()
+        .type(external ? ThreatType.EXTERNAL_CONTENT : ThreatType.ACTIVE_CONTENT)
+        .severity(ThreatSeverity.HIGH)
+        .action(ThreatAction.REMOVE)
+        .location(part.getPartName().getName())
+        .details(
+            "Removed tag \" "
+                + (external ? "externalData" : "DDEAUTO")
+                + "\" from the document.")
+        .build());
   }
 
   /**
