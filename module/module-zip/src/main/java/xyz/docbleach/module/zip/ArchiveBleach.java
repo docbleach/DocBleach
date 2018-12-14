@@ -93,7 +93,7 @@ public class ArchiveBleach implements Bleach {
     ZipEntry newEntry = cloneEntry(entry);
     newEntry.setCompressedSize(-1);
     newEntry.setSize(out.size());
-    newEntry.setComment(newEntry.getComment() + " - DocBleach");
+    newEntry.setComment(newEntry.getComment());
 
     zipOut.putNextEntry(newEntry);
     out.writeTo(zipOut);
