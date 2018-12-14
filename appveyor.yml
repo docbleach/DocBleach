@@ -20,7 +20,7 @@ install:
 
 build_script:
   - mvn clean install
-  - mvn jet:testrun jet:build -pl cli --batch-mode -DskipTest 
+  - mvn jet:testrun jet:build -pl cli --batch-mode -DskipTest
 
 cache:
   - C:\Users\appveyor\.m2

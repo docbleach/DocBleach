@@ -15,17 +15,17 @@ install: true
 addons:
   apt:
     packages:
-    - libc6:i386
-    - libx11-6:i386
-    - libxext6:i386
-    - libxrender1:i386
-    - libxi6:i386
-    - libxtst6:i386
+      - libc6:i386
+      - libx11-6:i386
+      - libxext6:i386
+      - libxrender1:i386
+      - libxi6:i386
+      - libxtst6:i386
 
 cache:
   directories:
-  - '$HOME/.m2'
-  - '$HOME/.sonar/cache'
+    - '$HOME/.m2'
+    - '$HOME/.sonar/cache'
 
 script:
   - mvn org.jacoco:jacoco-maven-plugin:prepare-agent package
