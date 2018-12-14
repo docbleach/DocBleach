@@ -42,16 +42,12 @@ public class ArchiveBleach implements Bleach {
     try {
       ZipEntry entry;
       while ((entry = zipIn.getNextEntry()) != null) {
-        LOGGER.trace(
-            "Entry: {} - Size: (original: {}, compressed: {})",
-            entry.getName(),
-            entry.getSize(),
-            entry.getCompressedSize());
-
         if (entry.isDirectory()) {
+          LOGGER.trace("Directory: {}", entry.getName());
           ZipEntry newEntry = new ZipEntry(entry);
           zipOut.putNextEntry(newEntry);
         } else {
+          LOGGER.trace("Entry: {}", entry.getName());
           sanitizeFile(session, zipIn, zipOut, entry);
         }
 
