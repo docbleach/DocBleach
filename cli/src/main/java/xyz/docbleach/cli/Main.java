@@ -11,9 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -95,32 +92,6 @@ public class Main {
             session.threatCount());
       }
     }
-  }
-
-  private ClassLoader getPluginClassLoader() {
-    ClassLoader ownClassLoader = getClass().getClassLoader();
-
-    File loc = new File("./plugins");
-    if (!loc.exists()) {
-      LOGGER.debug("./plugins/ directory does not exist");
-      return ownClassLoader;
-    }
-
-    File[] flist = loc.listFiles(file -> file.getPath().toLowerCase().endsWith(".jar"));
-    if (flist == null) {
-      return ownClassLoader;
-    }
-
-    URL[] urls = new URL[flist.length];
-    for (int i = 0; i < flist.length; i++) {
-      try {
-        urls[i] = flist[i].toURI().toURL();
-      } catch (MalformedURLException e) {
-        urls[i] = null;
-      }
-    }
-
-    return new URLClassLoader(urls, ownClassLoader);
   }
 
   private void setupLogging() {
