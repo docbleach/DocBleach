@@ -1,7 +1,5 @@
 package xyz.docbleach.module.rtf;
 
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
-
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -62,14 +60,13 @@ public class RTFBleach implements Bleach {
         if (l.toLowerCase().contains("\\obj")) {
           LOGGER.debug("OLE Object found and removed!");
 
-          Threat threat =
-              threat()
-                  .type(ThreatType.BINARY_CONTENT)
-                  .severity(ThreatSeverity.HIGH)
-                  .action(ThreatAction.REMOVE)
-                  .location("?")
-                  .details("Embedded OLE Object")
-                  .build();
+          Threat threat = Threat.builder()
+              .type(ThreatType.BINARY_CONTENT)
+              .severity(ThreatSeverity.HIGH)
+              .action(ThreatAction.REMOVE)
+              .location("?")
+              .details("Embedded OLE Object")
+              .build();
 
           session.recordThreat(threat);
         }

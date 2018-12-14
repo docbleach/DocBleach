@@ -1,7 +1,5 @@
 package xyz.docbleach.module.ole2;
 
-import static xyz.docbleach.api.threat.ThreatBuilder.threat;
-
 import java.util.Set;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.DocumentEntry;
@@ -43,14 +41,13 @@ public class ObjectRemover extends EntryFilter {
       infos.append("Size: ").append(size);
     }
 
-    Threat threat =
-        threat()
-            .type(ThreatType.EXTERNAL_CONTENT)
-            .severity(ThreatSeverity.HIGH)
-            .action(ThreatAction.REMOVE)
-            .location(entryName)
-            .details(infos.toString())
-            .build();
+    Threat threat = Threat.builder()
+        .type(ThreatType.EXTERNAL_CONTENT)
+        .severity(ThreatSeverity.HIGH)
+        .action(ThreatAction.REMOVE)
+        .location(entryName)
+        .details(infos.toString())
+        .build();
 
     session.recordThreat(threat);
 
