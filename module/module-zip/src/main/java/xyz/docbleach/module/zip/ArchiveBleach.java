@@ -6,9 +6,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Date;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveException;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveOutputStream;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
@@ -34,41 +38,49 @@ public class ArchiveBleach implements Bleach {
   }
 
   @Override
-  public void sanitize(InputStream inputStream, OutputStream outputStream, BleachSession session)
-      throws BleachException {
-    ZipInputStream zipIn = new ZipInputStream(inputStream);
-    ZipOutputStream zipOut = new ZipOutputStream(outputStream);
-
+  public void sanitize(InputStream is, OutputStream outputStream, BleachSession session) {
     try {
-      ZipEntry entry;
-      while ((entry = zipIn.getNextEntry()) != null) {
-        if (entry.isDirectory()) {
-          LOGGER.trace("Directory: {}", entry.getName());
-          ZipEntry newEntry = new ZipEntry(entry);
-          zipOut.putNextEntry(newEntry);
-        } else {
-          LOGGER.trace("Entry: {}", entry.getName());
-          sanitizeFile(session, zipIn, zipOut, entry);
+      System.out.println("detect(): " + ArchiveStreamFactory.detect(is));
+    } catch (ArchiveException e) {
+      e.printStackTrace();
+    }
+    ArchiveStreamFactory af = new ArchiveStreamFactory();
+    try (ArchiveInputStream i = af.createArchiveInputStream(is)) {
+      try (ArchiveOutputStream zipOut = af
+          .createArchiveOutputStream(ArchiveStreamFactory.detect(is), outputStream)) {
+        ArchiveEntry entry;
+        while ((entry = i.getNextEntry()) != null) {
+          if (!i.canReadEntryData(entry)) {
+            // log something?
+            System.out.println("Can't read " + entry.getName());
+            continue;
+          }
+
+          if (entry.isDirectory()) {
+            System.out.println("I'm a dir: " + entry.getName());
+            continue;
+          }
+          System.out.println("I'm a file: " + entry.getName() + ", " + entry.getSize());
+          sanitizeFile(session, i, zipOut, entry);
         }
-
-        zipOut.closeEntry();
+        zipOut.finish();
       }
-
-      zipOut.finish();
-    } catch (IOException e) {
-      LOGGER.error("Error in ArchiveBleach", e);
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
   private void sanitizeFile(
-      BleachSession session, ZipInputStream zipIn, ZipOutputStream zipOut, ZipEntry entry)
-      throws IOException, BleachException {
+      BleachSession session, ArchiveInputStream zipIn, ArchiveOutputStream zipOut,
+      ArchiveEntry entry)
+      throws IOException {
     ByteArrayOutputStream streamBuilder = new ByteArrayOutputStream();
 
     int bytesRead;
     // @TODO: check real file size?
     byte[] tempBuffer = new byte[1024];
     while ((bytesRead = zipIn.read(tempBuffer)) != -1) {
+      System.out.println("Read " + bytesRead);
       streamBuilder.write(tempBuffer, 0, bytesRead);
     }
     ByteArrayInputStream bais = new ByteArrayInputStream(streamBuilder.toByteArray());
@@ -90,13 +102,32 @@ public class ArchiveBleach implements Bleach {
       streamBuilder.close();
     }
 
-    ZipEntry newEntry = cloneEntry(entry);
-    newEntry.setCompressedSize(-1);
-    newEntry.setSize(out.size());
-    newEntry.setComment(newEntry.getComment());
+    // Add entry to archive
+    // ZipArchiveEntry ze = new ZipArchiveEntry((ZipArchiveEntry) entry);
+    zipOut.putArchiveEntry(new ArchiveEntry() {
+      @Override
+      public String getName() {
+        return entry.getName();
+      }
 
-    zipOut.putNextEntry(newEntry);
+      @Override
+      public long getSize() {
+        return out.size();
+      }
+
+      @Override
+      public boolean isDirectory() {
+        return false;
+      }
+
+      @Override
+      public Date getLastModifiedDate() {
+        return entry.getLastModifiedDate();
+      }
+    });
     out.writeTo(zipOut);
+    zipOut.closeArchiveEntry();
+
     out.close();
   }
 

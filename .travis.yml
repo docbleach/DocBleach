@@ -31,6 +31,14 @@ script:
   - mvn org.jacoco:jacoco-maven-plugin:prepare-agent package
   - ./scripts/jet-build.sh
 
+
+jobs:
+  include:
+    - stage: codestyle
+      jdk: oraclejdk8
+      script: mvn com.coveo:fmt-maven-plugin:check
+
+
 before_deploy:
   - zip -r cli/target/docbleach_linux_amd64.zip cli/target/jet/app/
 

@@ -12,6 +12,14 @@
 
   <artifactId>module-zip</artifactId>
 
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-compress</artifactId>
+      <version>1.18</version>
+    </dependency>
+  </dependencies>
+
   <packaging>jar</packaging>
 
   <name>Zip-Bleach</name>
