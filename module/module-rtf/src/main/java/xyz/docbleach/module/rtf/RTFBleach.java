@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xyz.docbleach.api.BleachSession;
@@ -51,10 +52,10 @@ public class RTFBleach implements Bleach {
       throws BleachException {
     LOGGER.debug("This is a RTF file, I'll rename object to 0bject, and hope for it to be enough.");
 
-    Charset cs = Charset.isSupported("UTF-8") ? Charset.forName("UTF-8") : Charset.defaultCharset();
+    Charset cs = StandardCharsets.UTF_8;
 
     try (BufferedReader inStream = new BufferedReader(new InputStreamReader(inputStream, cs));
-        BufferedWriter outStream = new BufferedWriter(new OutputStreamWriter(outFile, cs));) {
+        BufferedWriter outStream = new BufferedWriter(new OutputStreamWriter(outFile, cs))) {
       String l;
       while ((l = inStream.readLine()) != null) {
         if (l.toLowerCase().contains("\\obj")) {
