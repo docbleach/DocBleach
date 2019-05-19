@@ -38,7 +38,6 @@
   <modules>
     <module>api</module>
     <module>cli</module>
-    <module>http_server</module>
 
     <module>module</module>
   </modules>
