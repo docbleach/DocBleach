@@ -65,9 +65,9 @@ public class BleachSession implements Serializable {
       if (ongoingTasks++ >= MAX_ONGOING_TASKS) {
         throw new RecursionBleachException(ongoingTasks);
       }
-      if (!bleach.handlesMagic(is)) {
-        return;
-      }
+      //if (!bleach.handlesMagic(is)) {
+      //  return;
+      //}
       bleach.sanitize(is, os, this);
     } finally {
       ongoingTasks--;
