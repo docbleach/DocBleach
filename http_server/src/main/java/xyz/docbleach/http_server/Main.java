@@ -1,7 +1,7 @@
 package xyz.docbleach.http_server;
 
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
+import io.vertx.core.Promise;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServer;
 import io.vertx.core.http.HttpServerResponse;
@@ -66,13 +66,13 @@ public class Main extends AbstractVerticle {
                 LOGGER.info("UploadedFileName: {}", upload.fileName());
 
                 vertx.executeBlocking(
-                    (Handler<Future<File>>)
-                        future -> {
+                    (Handler<Promise<File>>)
+                        promise -> {
                           try {
-                            future.complete(sanitize(upload.uploadedFileName()));
+                            promise.complete(sanitize(upload.uploadedFileName()));
                           } catch (IOException | BleachException e) {
                             LOGGER.error("Error", e);
-                            future.fail(e);
+                            promise.fail(e);
                           }
                         },
                     res -> {
@@ -101,7 +101,7 @@ public class Main extends AbstractVerticle {
               response.end("Hello from the light DocBleach Server!");
             });
 
-    server.requestHandler(router::accept).listen(getPortNumber());
+    server.requestHandler(router).listen(getPortNumber());
   }
 
   private void sendFile(RoutingContext routingContext, String fileName, File saneFile) {
@@ -121,7 +121,7 @@ public class Main extends AbstractVerticle {
 
   private void removeFiles(File... files) {
     vertx.executeBlocking(
-        future -> {
+        promise -> {
           for (File f : files) {
             if (!f.delete()) {
               LOGGER.warn("Could not delete file{} ", f.getAbsolutePath());
