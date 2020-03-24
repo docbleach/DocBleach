@@ -354,7 +354,6 @@ public class OOXMLBleach implements Bleach {
     String rId = relationship.getId();
     String rRT = relationship.getRelationshipType();
     pkg.removeRelationship(rId);
-    //pkg.addRelationship(DUMMY_PACKAGE_PART_NAME, TargetMode.INTERNAL, Relations.OPENXML_OLE_OBJECT, rId);
 	  if (relationship.getTargetMode() !=null){
   	  pkg.addExternalRelationship(DUMMY_WEB_ADDRESS, rRT, rId);
 	  } else {
