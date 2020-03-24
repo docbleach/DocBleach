@@ -351,10 +351,11 @@ public class OOXMLBleach implements Bleach {
    */
   private void replaceRelationship(RelationshipSource pkg, PackageRelationship relationship) {
     String rId = relationship.getId();
-
+    String rRT = relationship.getRelationshipType();
     pkg.removeRelationship(rId);
     pkg.addRelationship(
-        DUMMY_PACKAGE_PART_NAME, TargetMode.INTERNAL, Relations.OPENXML_OLE_OBJECT, rId);
+        //DUMMY_PACKAGE_PART_NAME, TargetMode.INTERNAL, Relations.OPENXML_OLE_OBJECT, rId);
+        DUMMY_PACKAGE_PART_NAME, TargetMode.INTERNAL, rRT, rId);    
   }
 
   private boolean isBlacklistedRelationType(String relationshipType) {
