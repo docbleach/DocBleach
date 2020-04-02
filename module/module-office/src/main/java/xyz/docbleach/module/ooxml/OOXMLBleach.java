@@ -205,6 +205,7 @@ public class OOXMLBleach implements Bleach {
       sanitize(session, pkg, part);
 
       OOXMLTagHelper.removeExternalDataTagAndDDE(session, part);
+      OOXMLoleObjectsHelper.removeoleObjects(session, part);
 
       if (!part.isRelationshipPart()) {
         sanitize(session, part, part.getRelationships());
