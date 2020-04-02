@@ -80,7 +80,7 @@ public class OOXMLoleObjectsHelper {
     }
 
     session.recordThreat(Threat.builder()
-        .type(ThreatType.OLEOBJECTS_CONTENT)
+        .type(ThreatType.ACTIVE_CONTENT)
         .severity(ThreatSeverity.HIGH)
         .action(ThreatAction.REMOVE)
         .location(part.getPartName().getName())
