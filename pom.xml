@@ -6,7 +6,7 @@
 
   <groupId>xyz.docbleach</groupId>
   <artifactId>docbleach-parent</artifactId>
-  <version>1.0.0</version>
+  <version>0.0.2</version>
   <packaging>pom</packaging>
 
   <name>DocBleach Parent</name>
