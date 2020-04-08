@@ -7,7 +7,7 @@
   <parent>
     <artifactId>docbleach-parent</artifactId>
     <groupId>xyz.docbleach</groupId>
-    <version>1.0.0</version>
+    <version>0.0.2</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
