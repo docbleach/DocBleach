@@ -31,10 +31,10 @@ class PDEmbeddedFileBleach {
     LOGGER.trace("Embedded file found: {}", fileSpec.getFilename());
 
     fileSpec.setEmbeddedFile(sanitizeEmbeddedFile(fileSpec.getEmbeddedFile()));
-    fileSpec.setEmbeddedFileDos(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileDos()));
-    fileSpec.setEmbeddedFileMac(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileMac()));
+    //fileSpec.setEmbeddedFileDos(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileDos()));
+    //fileSpec.setEmbeddedFileMac(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileMac()));
     fileSpec.setEmbeddedFileUnicode(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileUnicode()));
-    fileSpec.setEmbeddedFileUnix(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileUnix()));
+    //fileSpec.setEmbeddedFileUnix(sanitizeEmbeddedFile(fileSpec.getEmbeddedFileUnix()));
   }
 
   private PDEmbeddedFile sanitizeEmbeddedFile(PDEmbeddedFile file) {

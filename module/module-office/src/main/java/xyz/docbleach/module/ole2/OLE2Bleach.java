@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.function.Predicate;
-import org.apache.poi.hpsf.ClassID;
+import org.apache.poi.hpsf.ClassIDPredefined;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.DocumentEntry;
 import org.apache.poi.poifs.filesystem.DocumentInputStream;
@@ -52,7 +52,7 @@ public class OLE2Bleach implements Bleach {
       // @TODO: Filter based on Storage Class ID - see issue #23
       sanitize(session, fsIn, fs);
 
-      if (ClassID.EXCEL97.equals(fs.getRoot().getStorageClsid())) {
+      if (ClassIDPredefined.EXCEL_V8.equals(fs.getRoot().getStorageClsid())) {
         ExcelRecordCleaner.cleanupAndSaveExcel97(fs, outputStream);
       } else {
         fs.writeFilesystem(outputStream);
@@ -80,7 +80,7 @@ public class OLE2Bleach implements Bleach {
             .and(new ObjectRemover(session))
             .and(new SummaryInformationSanitiser(session));
 
-    LOGGER.debug("Root ClassID: {}", rootIn.getStorageClsid());
+    LOGGER.debug("Root ClassIDPredefined: {}", rootIn.getStorageClsid());
     // https://blogs.msdn.microsoft.com/heaths/2006/02/27/identifying-windows-installer-file-types/
     rootOut.setStorageClsid(rootIn.getStorageClsid());
 
