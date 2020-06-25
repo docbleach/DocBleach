@@ -49,6 +49,7 @@ public class OOXMLBleach implements Bleach {
   private static final String DUMMY_FILE_CONTENT = "BLEACHED";
   private static final PackagePartName DUMMY_PACKAGE_PART_NAME =
       createPartName(DUMMY_FILE_PART_NAME);
+  private static final String DUMMY_WEB_ADDRESS = "https://127.0.0.1/"; 
 
   private static final String[] WHITELISTED_RELATIONS =
       new String[]{
@@ -351,10 +352,13 @@ public class OOXMLBleach implements Bleach {
    */
   private void replaceRelationship(RelationshipSource pkg, PackageRelationship relationship) {
     String rId = relationship.getId();
-
+    String rRT = relationship.getRelationshipType();
     pkg.removeRelationship(rId);
-    pkg.addRelationship(
-        DUMMY_PACKAGE_PART_NAME, TargetMode.INTERNAL, Relations.OPENXML_OLE_OBJECT, rId);
+    if (relationship.getTargetMode() == TargetMode.EXTERNAL){
+      pkg.addExternalRelationship(DUMMY_WEB_ADDRESS, rRT, rId);
+    } else {
+      pkg.addRelationship(DUMMY_PACKAGE_PART_NAME, TargetMode.INTERNAL, rRT, rId);
+    }
   }
 
   private boolean isBlacklistedRelationType(String relationshipType) {
