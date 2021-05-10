@@ -122,7 +122,6 @@
         <configuration>
           <source>${jdk.version}</source>
           <target>${jdk.version}</target>
-
           <debuglevel>lines,vars,source</debuglevel>
           <showDeprecation>true</showDeprecation>
           <showWarnings>true</showWarnings>
@@ -165,6 +164,7 @@
                 </excludes>
               </filter>
             </filters>
+            <minimizeJar>true</minimizeJar>
           </configuration>
         </plugin>
       </plugins>
