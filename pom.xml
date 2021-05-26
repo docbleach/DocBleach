@@ -164,7 +164,6 @@
                 </excludes>
               </filter>
             </filters>
-            <minimizeJar>true</minimizeJar>
           </configuration>
         </plugin>
       </plugins>
