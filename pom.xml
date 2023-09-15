@@ -40,6 +40,7 @@
     <module>api</module>
     <module>cli</module>
     <module>module</module>
+    <module>http_server</module>
   </modules>
 
   <issueManagement>
