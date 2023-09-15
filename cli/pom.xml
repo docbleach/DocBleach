@@ -7,7 +7,7 @@
   <parent>
     <groupId>xyz.docbleach</groupId>
     <artifactId>docbleach-parent</artifactId>
-    <version>0.0.4</version>
+    <version>0.0.5</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -23,15 +23,9 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>2.0.6</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-to-slf4j</artifactId>
-      <version>2.19.0</version>
+      <version>2.20.0</version>
     </dependency>
 
     <dependency>
@@ -91,7 +85,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.4.1</version>
+        <version>3.5.0</version>
       </plugin>
 
       <plugin>
@@ -112,7 +106,7 @@
         <!-- Don't deploy this to maven repo, only APIs -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-deploy-plugin</artifactId>
-        <version>3.1.0</version>
+        <version>3.3.1</version>
         <configuration>
           <skip>true</skip>
         </configuration>
